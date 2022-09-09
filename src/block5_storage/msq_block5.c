@@ -158,16 +158,15 @@ void *block5() {
         oper.sem_flg = 0;
         semop(sem,&oper,1);
 
-        if(((stopFlag == 4) || (arrivalsBlockFive == NULL)) && (number == 0)){
+        if((stopFlag == 4) && (arrivalsBlockFive == NULL) && (number == 0)){
             break;
         }
-
 
         printf("\n-------- BLOCK 5 --------\n");
 
 
         /* Find next event index */
-                          nextEvent = get_next_event_type(5);
+        nextEvent = get_next_event_type(5);
         printf("\nBLOCK 5 type event %d\n", nextEvent);
         if (nextEvent == 0) {
             event[0].t = get_next_event_time(5);

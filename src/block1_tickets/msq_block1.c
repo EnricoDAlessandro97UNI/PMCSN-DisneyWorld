@@ -24,7 +24,7 @@
 
 #define START 0.0        /* initial (open the door)        */
 #define SERVERS_ONE 4    /* number of servers              */
-#define STOP 216000.0     /* terminal (close the door) time */
+#define STOP 2000.0     /* terminal (close the door) time */
 
 typedef struct
 {             /* the next-event list    */
@@ -41,7 +41,7 @@ double GetArrivalBlockOne(void)
     static double arrival = START;
 
     SelectStream(0);
-    arrival += Exponential(18.0);
+    arrival += Exponential(2.0);
     return (arrival);
 }
 
@@ -52,7 +52,7 @@ double GetServiceBlockOne(void)
  */
 {
     SelectStream(1);
-    return (Uniform(900, 1800));
+    return (Uniform(2, 10));
 }
 
 int NextEventBlockOne(event_list_one event)
@@ -172,6 +172,7 @@ void *block1()
         { /* Process an arrival */
 
             printf("\nBLOCK1: Processing an arrival...\n");
+            printf("\tCurrent arrival time: %6.2f\n", event[0].t);
 
             /* Handle feedback_counter
             if (feedback_counter != 0) {
@@ -183,7 +184,7 @@ void *block1()
             number++;
 
             event[0].t = GetArrivalBlockOne(); /* genera l'istante del prossimo arrivo */
-            printf("\tNext arrival: %6.2f\n", event[0].t);
+            //printf("\tNext arrival: %6.2f\n", event[0].t);
 
             if (event[0].t > STOP) 
             {                   /* se si è arrivati alla fine non si avranno più arrivi */

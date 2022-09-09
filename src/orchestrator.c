@@ -9,14 +9,14 @@
 #include <pthread.h>
 
 #include "orchestrator_helper.h"
-#include "block1/block1_helper.h"
-#include "block2/block2_helper.h"
-#include "block3/block3_helper.h"
-#include "block4/block4_helper.h"
-#include "block5/block5_helper.h"
+#include "block1_tickets/block1_helper.h"
+#include "block2_dis/block2_helper.h"
+#include "block3_norm/block3_helper.h"
+#include "block4_contr/block4_helper.h"
+#include "block5_storage/block5_helper.h"
 
 /*
- * gcc -Wall -Wextra orchestrator.c global_helper.c block1/msq_block1.c block1/block1_helper.c block2/ssq1_block2.c block2/block2_helper.c block3/msq_block3.c block3/block3_helper.c block4/msq_block4.c block4/block4_helper.c rngs.o -o simu -lm -lpthread 
+ * gcc -Wall -Wextra orchestrator.c global_helper.c block1_tickets/msq_block1.c block1_tickets/block1_helper.c block2_dis/ssq1_block2.c block2_dis/block2_helper.c block3_norm/msq_block3.c block3_norm/block3_helper.c block4_contr/msq_block4.c block4_contr/block4_helper.c rngs.o -o simu -lm -lpthread
  */
 
 pthread_t tid[5];
@@ -206,14 +206,14 @@ int main() {
         }
 
         printf("\n\n #www stopFlag %d\n\n", stopFlag);
-        if (stopFlag == 4) {
+        if (stopFlag == 5) {
 
-            oper.sem_num = 4;
+            /*oper.sem_num = 4;
             oper.sem_op = 1;
             oper.sem_flg = 0;
 
             semop(sem, &oper, 1);
-            
+            */
             printf("\n\n| ------------------ STATISTICS ------------------ |\n");
 
             /* sblocco tutti i thread in ordine in modo che terminino. In questo modo però i blocchi non terminano tutti i job che hanno in coda */
