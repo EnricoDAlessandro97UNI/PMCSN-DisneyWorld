@@ -172,3 +172,9 @@ dmypy.json
  
 # Cython debug symbols
 cython_debug/
+
+
+.idea/
+CMakeLists.txt
+cmake-build-debug
+cmake-build-debug-event-trace
