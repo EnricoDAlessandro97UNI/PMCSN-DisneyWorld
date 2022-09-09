@@ -1,0 +1,3 @@
+/home/alessandrodea/Scrivania/pmcsn/PMCSN-DisneyWorld/cmake-build-debug/CMakeFiles/PMCSN_DisneyWorld.dir
+/home/alessandrodea/Scrivania/pmcsn/PMCSN-DisneyWorld/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/alessandrodea/Scrivania/pmcsn/PMCSN-DisneyWorld/cmake-build-debug/CMakeFiles/rebuild_cache.dir
