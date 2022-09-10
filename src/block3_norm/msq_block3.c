@@ -152,7 +152,7 @@ void *block3() {
             break;
         }
 
-        printf("\n-------- BLOCK 3 --------\n");
+        //printf("\n-------- BLOCK 3 --------\n");
 
         /* Find next event index */
         nextEvent = get_next_event_type(3);
@@ -271,7 +271,6 @@ void *block3() {
                (double) sum[s].served / index);
 
     printf("\n");
-    printf("block 3 received %d jobs\n", received);
 
 
     pthread_exit((void *)0);

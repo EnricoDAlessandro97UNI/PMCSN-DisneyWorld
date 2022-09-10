@@ -49,7 +49,7 @@ double GetServiceBlock5()
  */
 {
     SelectStream(5);
-    return (Exponential(1/M5));
+    return (Exponential(M5));
 }
 
 
@@ -103,7 +103,7 @@ void *block5() {
             break;
         }
 
-        printf("\n-------- BLOCK 5 --------\n");
+        //printf("\n-------- BLOCK 5 --------\n");
 
         nextEvent = get_next_event_type(5);
         //printf("\nBLOCK 5 type event %d\n", nextEvent);
@@ -186,7 +186,7 @@ void *block5() {
     whoIsFree[4] = 1;
     stopFlag = 5;
     update_next_event(5, INFINITY, -1);
-    //printf("\nBLOCK5: Terminated, waiting for the orchestrator...\n");
+    printf("\nBLOCK5: Terminated, waiting for the orchestrator...\n");
 
     oper.sem_num = 4;
     oper.sem_op = -1;

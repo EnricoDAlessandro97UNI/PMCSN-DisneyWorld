@@ -20,13 +20,13 @@
 #include "block1_helper.h"
 
 #define START 0.0        /* initial (open the door)        */
-#define SERVERS_ONE 10    /* number of servers              */
-#define STOP 3600.0     /* terminal (close the door) time */
+#define SERVERS_ONE 40    /* number of servers              */
+#define STOP 36000.0     /* terminal (close the door) time  (Fascia1: 36000, Fascia2: 21600)*/
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
-#define LAMBDA1 0.78261
+/* ricordiamoci che questi sono 1/lambda */
+#define LAMBDA1 0.78
 #define LAMBDA2 2.16
-#define LAMBDA3 36
 
 #define M1 120
 
@@ -47,7 +47,7 @@ double GetArrivalBlockOne(void)
     static double arrival = START;
 
     SelectStream(0);
-    arrival += Exponential(LAMBDA3);
+    arrival += Exponential(LAMBDA1);
 
     return (arrival);
 }
@@ -170,7 +170,7 @@ void *block1()
         oper.sem_flg = 0;
         semop(sem, &oper, 1);
 
-        printf("\n-------- BLOCK 1 --------\n");
+        //printf("\n-------- BLOCK 1 --------\n");
 
         /* Find next event index */
         e = NextEventBlockOne(event);
@@ -216,7 +216,7 @@ void *block1()
             }else if (number <= SERVERS_ONE){
                 /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 double service = GetServiceBlockOne();
-                printf("\tService: %6.2f\n", service);
+                //printf("\tService: %6.2f\n", service);
                 s = FindOneBlockOne(event); /* trova un server vuoto */
                 //printf("\tServer selected: %d\n", s);
                 sum[s].service += service;

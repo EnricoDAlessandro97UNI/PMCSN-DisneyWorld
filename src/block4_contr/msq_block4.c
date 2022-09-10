@@ -152,7 +152,7 @@ void *block4() {
             break;
         }
 
-        printf("\n-------- BLOCK 4 --------\n");
+        //printf("\n-------- BLOCK 4 --------\n");
 
         /* Find next event index */
         nextEvent = get_next_event_type(4);

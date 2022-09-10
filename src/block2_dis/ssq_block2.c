@@ -98,7 +98,7 @@ void *block2() {
             break;
         }
 
-        printf("\n-------- BLOCK 2 --------\n");
+        //printf("\n-------- BLOCK 2 --------\n");
 
         nextEvent = get_next_event_type(2);
         //printf("\nBLOCK 2 type event %d\n", nextEvent);

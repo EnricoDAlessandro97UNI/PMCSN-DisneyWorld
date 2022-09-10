@@ -303,7 +303,6 @@ statistics:
 
             /* sblocco tutti i thread in ordine in modo che terminino. In questo modo però i blocchi non terminano tutti i job che hanno in coda */
             for(int i = 0; i < 5; i++) {
-                printf("PIANTATO\n");
                 oper.sem_num = i;
                 oper.sem_op = 1;
                 oper.sem_flg = 0;

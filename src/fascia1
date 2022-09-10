@@ -1,0 +1,93 @@
+
+BLOCK5: Terminated, waiting for the orchestrator...
+All blocks have finished, going to close
+
+
+| ------------------ STATISTICS ------------------ |
+
+BLOCK 1 STATISTICS:
+
+for 27165 jobs, forwarded 18297
+  avg interarrivals .. = 1.325253
+  avg wait ........... = 146608.597553
+  avg # in node ...... = 12109.835052
+  avg delay .......... = 146487.623337
+  avg # in queue ..... = 12099.842610
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.999          124.03           0.098
+       2          0.999          118.33           0.102
+       3          0.999          120.85           0.100
+       4          0.999          123.01           0.098
+       5          0.999          122.12           0.099
+       6          0.999          117.97           0.103
+       7          0.999          120.75           0.100
+       8          1.000          120.73           0.100
+       9          0.999          120.40           0.100
+      10          0.999          121.82           0.099
+
+
+BLOCK 2 STATISTICS:
+for 4455 jobs
+   average interarrival time =   0.00
+   average wait ............ = 1401.94
+   average delay ........... = 1381.62
+   average service time .... =  20.31
+   average # in the node ... =  19.01
+   average # in the queue .. =  18.73
+   utilization ............. =   0.28
+
+BLOCK 3 STATISTICS:
+
+for 41007 jobs
+  avg interarrivals .. =   8.02
+  avg wait ........... =  14.87
+  avg # in node ...... =   1.85
+  avg delay .......... =   4.84
+  avg # in queue ..... =   0.60
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.486            9.97           0.391
+       2          0.293           10.04           0.234
+       3          0.168           10.15           0.133
+       4          0.115           10.13           0.091
+       5          0.098           10.02           0.078
+       6          0.091           10.00           0.073
+
+
+BLOCK 4 STATISTICS:
+
+for 45462 jobs, lost 4405, pushed to exit 22818
+  avg interarrivals .. =   7.23
+  avg wait ........... = 800296.77
+  avg # in node ...... = 20057.02
+  avg delay .......... = 800057.42
+  avg # in queue ..... = 20051.02
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          1.000          238.63           0.167
+       2          1.000          237.67           0.168
+       3          1.000          242.93           0.164
+       4          1.000          241.18           0.165
+       5          1.000          241.74           0.165
+       6          1.000          234.16           0.170
+
+
+BLOCK 5 STATISTICS:
+for 18239 jobs
+   average interarrival time =   0.00
+   average wait ............ = 185587.66
+   average delay ........... = 185467.63
+   average service time .... = 120.02
+   average # in the node ... = 1545.79
+   average # in the queue .. = 1544.79
+   utilization ............. =   1.00
+
+| ------------------------------------------------ |
+
