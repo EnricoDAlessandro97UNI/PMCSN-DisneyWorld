@@ -25,9 +25,9 @@
 #include "../rngs.h"
 
 #define START 0.0          /* initial (open the door)        */
-#define SERVERS_THREE 4    /* number of servers              */
+#define SERVERS_THREE 6    /* number of servers              */
 
-#define MU3 0.1
+#define M3 10
 
 
 typedef struct
@@ -43,7 +43,7 @@ double GetServiceBlockThree(void)
  */
 {
     SelectStream(3);
-    return (Exponential(MU3));
+    return (Exponential(M3));
 }
 
 int NextEventBlockThree(event_list_three event)
@@ -156,10 +156,10 @@ void *block3() {
 
         /* Find next event index */
         nextEvent = get_next_event_type(3);
-        printf("\nBLOCK 3 type event %d\n", nextEvent);
+        //printf("\nBLOCK 3 type event %d\n", nextEvent);
         if (nextEvent == 0) {
             event[0].t = get_next_event_time(3);
-            printf("\nBLOCK 3 ARRIVAL %f\n", event[0].t);
+            //printf("\nBLOCK 3 ARRIVAL %f\n", event[0].t);
         }
 
         e = NextEventBlockThree(event);
@@ -170,7 +170,7 @@ void *block3() {
 
 
         if (e == 0) {   /* Process an arrival */
-            printf("\nBLOCK3: Processing arrival %6.2f\n", t.current);
+            //printf("\nBLOCK3: Processing arrival %6.2f\n", t.current);
             
             number++;
             
@@ -191,9 +191,9 @@ void *block3() {
             if (number <= SERVERS_THREE) 
             { /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 double service = GetServiceBlockThree();
-                printf("\tService: %6.2f\n", service);
+                //printf("\tService: %6.2f\n", service);
                 s = FindOneBlockThree(event);
-                printf("\tServer selected: %d\n", s);
+                //printf("\tServer selected: %d\n", s);
                 sum[s].service += service;
                 sum[s].served++;
                 event[s].t = t.current + service;
@@ -203,15 +203,15 @@ void *block3() {
         }
         else {  /* Process a departure from server s */
 
-            printf("\nBLOCK3: Processing a departure...\n");
+            //printf("\nBLOCK3: Processing a departure...\n");
 
             index++;                         
             number--; /* Job completed */
             s = e;
 
-            printf("\nService from server %d\n", s);
+            //printf("\nService from server %d\n", s);
 
-            printf("\tDeparture: %6.2f\n", event[s].t);
+            //printf("\tDeparture: %6.2f\n", event[s].t);
             dt = event[s].t;
             if (number >= SERVERS_THREE) {
                 double service = GetServiceBlockThree();
@@ -231,7 +231,7 @@ void *block3() {
         e = NextEventBlockThree(event);
         update_next_event(3, event[e].t, (e == 0) ? 0 : 1); /* (e == 0) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
-        printf("--------------------------\n\n");
+        //printf("--------------------------\n\n");
 
 
         oper.sem_num = 0;
@@ -244,7 +244,7 @@ void *block3() {
     /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
     stopFlag += 3;
     update_next_event(3, INFINITY, -1);
-    printf("\nBLOCK3: Terminated, waiting for the orchestrator...\n");
+    //printf("\nBLOCK3: Terminated, waiting for the orchestrator...\n");
 
     oper.sem_num = 2;
     oper.sem_op = -1;

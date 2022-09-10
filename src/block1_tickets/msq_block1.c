@@ -20,12 +20,15 @@
 #include "block1_helper.h"
 
 #define START 0.0        /* initial (open the door)        */
-#define SERVERS_ONE 4    /* number of servers              */
-#define STOP 36000.0     /* terminal (close the door) time */
+#define SERVERS_ONE 10    /* number of servers              */
+#define STOP 3600.0     /* terminal (close the door) time */
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
-#define LAMBDA 1.27778
-#define MU1 0.0084
+#define LAMBDA1 0.78261
+#define LAMBDA2 2.16
+#define LAMBDA3 36
+
+#define M1 120
 
 typedef struct
 {             /* the next-event list    */
@@ -35,7 +38,7 @@ typedef struct
 
 
 
-double GetArrivalBlockOneF1(void)
+double GetArrivalBlockOne(void)
 /* ---------------------------------------------
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
@@ -44,22 +47,11 @@ double GetArrivalBlockOneF1(void)
     static double arrival = START;
 
     SelectStream(0);
-    arrival += Exponential(LAMBDA);
+    arrival += Exponential(LAMBDA3);
+
     return (arrival);
 }
 
-double GetArrivalBlockOneF2(void)
-/* ---------------------------------------------
- * generate the next arrival time, with rate 1/2
- * ---------------------------------------------
- */
-{
-    static double arrival = START;
-
-    SelectStream(0);
-    arrival += Exponential(MU1);
-    return (arrival);
-}
 
 double GetServiceBlockOne(void)
 /* ---------------------------------------------
@@ -68,7 +60,7 @@ double GetServiceBlockOne(void)
  */
 {
     SelectStream(1);
-    return (Uniform(2, 10));
+    return (Exponential(M1));
 }
 
 int NextEventBlockOne(event_list_one event)
@@ -146,11 +138,11 @@ void *block1()
     int forwarded = 0;
 
 
-    PlantSeeds(123456789);
+    PlantSeeds(987654321);
 
     /* Initialize arrival event */
     t.current = START;
-    event[0].t = GetArrivalBlockOneF1();
+    event[0].t = GetArrivalBlockOne();
     event[0].x = 1;
 
     /* Initialize server status */
@@ -178,7 +170,7 @@ void *block1()
         oper.sem_flg = 0;
         semop(sem, &oper, 1);
 
-        //printf("\n-------- BLOCK 1 --------\n");
+        printf("\n-------- BLOCK 1 --------\n");
 
         /* Find next event index */
         e = NextEventBlockOne(event);
@@ -203,7 +195,7 @@ void *block1()
 
             number++;
 
-            event[0].t = GetArrivalBlockOneF1(); /* genera l'istante del prossimo arrivo */
+            event[0].t = GetArrivalBlockOne(); /* genera l'istante del prossimo arrivo */
             //printf("\tNext arrival: %6.2f\n", event[0].t);
 
             if (event[0].t > STOP) 
@@ -224,7 +216,7 @@ void *block1()
             }else if (number <= SERVERS_ONE){
                 /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 double service = GetServiceBlockOne();
-                //printf("\tService: %6.2f\n", service);
+                printf("\tService: %6.2f\n", service);
                 s = FindOneBlockOne(event); /* trova un server vuoto */
                 //printf("\tServer selected: %d\n", s);
                 sum[s].service += service;
@@ -294,7 +286,7 @@ void *block1()
     stopFlag = 1;
     update_next_event(1, INFINITY, -1);
 
-    printf("BLOCK1: Terminated, waiting for the orchestrator...\n");
+    //printf("BLOCK1: Terminated, waiting for the orchestrator...\n");
     /* attendi che l'orchestrator ti dia il via libera per stampare le statistiche*/
     oper.sem_num = 0;
     oper.sem_op = -1;

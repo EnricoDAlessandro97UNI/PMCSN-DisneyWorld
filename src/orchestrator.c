@@ -233,7 +233,7 @@ int main() {
                 prob = get_probability();
                 if(prob <= 0.1){
                     /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco per disabili */
-                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 2);
+                    //printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 2);
 
                     add_event_to_queue(departureInfo.time, 2);
 
@@ -242,7 +242,7 @@ int main() {
 
                 }else{
                     /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco 3, non per disabili*/
-                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 3);
+                    //printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 3);
 
                     add_event_to_queue(departureInfo.time, 3);
 
@@ -254,7 +254,7 @@ int main() {
             }else if(departureInfo.blockNum == 2 || departureInfo.blockNum == 3){
 
                 /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco per disabili */
-                printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 4);
+                //printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 4);
 
                 add_event_to_queue(departureInfo.time, 4);
 
@@ -265,7 +265,7 @@ int main() {
                 prob = get_probability();
                 if(prob <= 0.4){
                     /* vuol dire che la partenza nel blocco 4 sarà un arrivo nel blocco 5 del deposito */
-                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 5);
+                    //printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 5);
 
                     add_event_to_queue(departureInfo.time, 5);
 
@@ -273,20 +273,20 @@ int main() {
 
                 } else if(prob > 0.4 && prob <= 0.9){
                     block4ToExit++;
-                    printf("Orchestrator forwarded departure from block %d\n", departureInfo.blockNum);
+                    //printf("Orchestrator forwarded departure from block %d\n", departureInfo.blockNum);
                     departureInfo.time = -1;
 
                 }else{
                     /* è una perdita */
                     block4Lost++;
-                    printf("Orchestrator lost from block %d, time %6.2f\n", departureInfo.blockNum, departureInfo.time);
+                    //printf("Orchestrator lost from block %d, time %6.2f\n", departureInfo.blockNum, departureInfo.time);
                     departureInfo.time = -1;
 
                 }
 
             }else{
                 /* vuol dire che è una partenza dal blocco 5 */
-                printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, departureInfo.blockNum + 1);
+                //printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, departureInfo.blockNum + 1);
 
                 add_event_to_queue(departureInfo.time, departureInfo.blockNum + 1);
 
@@ -296,20 +296,21 @@ int main() {
         }
 
 statistics:
-        printf("\n\n #www stopFlag2 %d\n\n", stopFlag2);
+        //printf("\n\n #www stopFlag2 %d\n\n", stopFlag2);
         if (stopFlag2 == 1) {
 
             printf("\n\n| ------------------ STATISTICS ------------------ |\n");
 
             /* sblocco tutti i thread in ordine in modo che terminino. In questo modo però i blocchi non terminano tutti i job che hanno in coda */
             for(int i = 0; i < 5; i++) {
+                printf("PIANTATO\n");
                 oper.sem_num = i;
                 oper.sem_op = 1;
                 oper.sem_flg = 0;
 
                 semop(sem, &oper, 1);
                 pthread_join(tid[i], NULL);
-                printf("\nBLOCK %d JOINED\n", i+1);
+                //printf("\nBLOCK %d JOINED\n", i+1);
             }
 
             break; /* stop the cycle */
@@ -318,7 +319,6 @@ statistics:
 
     printf("\n| ------------------------------------------------ |\n\n");
 
-    printf("c2 = %d and c3 = %d\n", c2, c3);
 
 
     exit(0);

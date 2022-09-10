@@ -22,7 +22,7 @@
 #define START         0.0              /* initial time                   */
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
-#define MU5 0.0084
+#define M5 120
 
 
 
@@ -49,7 +49,7 @@ double GetServiceBlock5()
  */
 {
     SelectStream(5);
-    return (Exponential(MU5));
+    return (Exponential(1/M5));
 }
 
 
@@ -106,10 +106,10 @@ void *block5() {
         printf("\n-------- BLOCK 5 --------\n");
 
         nextEvent = get_next_event_type(5);
-        printf("\nBLOCK 5 type event %d\n", nextEvent);
+        //printf("\nBLOCK 5 type event %d\n", nextEvent);
         if (nextEvent == 0) {
             t.arrival = get_next_event_time(5);
-            printf("\nBLOCK 5 ARRIVAL %f\n", t.arrival);
+            //printf("\nBLOCK 5 ARRIVAL %f\n", t.arrival);
         }
 
 
@@ -129,28 +129,28 @@ void *block5() {
             DeleteFirstArrival(5);
 
             prob = get_forward_probability();
-            printf("\nPROB: %f\n", prob);
+            //printf("\nPROB: %f\n", prob);
             if (prob < THRESHOLD_PROBABILITY) { /* Feedback */
-                printf("\nPROB: feedback\n");
+                //printf("\nPROB: feedback\n");
                 forwarded++;  /* set the feedback flag for the orchestrator */
 
                 departureInfo.blockNum = 5;
                 departureInfo.time = dt;
-                printf("\tForwarded departure: %6.2f\n", t.current);
+                //printf("\tForwarded departure: %6.2f\n", t.current);
 
             }
 
             if (number == 1) {
                 t.completion = t.current + GetServiceBlock5();
-                printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
+                //printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
             }
 
             t.arrival = INFINITY;
 
         } else {                                        /* process a completion */
-            printf("\nBLOCK5: Processing a departure...\n");
+            //printf("\nBLOCK5: Processing a departure...\n");
 
-            printf("\nDeparture time  %6.2f\n", t.completion);
+            //printf("\nDeparture time  %6.2f\n", t.completion);
 
             dt = t.current;
 
@@ -158,7 +158,7 @@ void *block5() {
             number--;
             if (number > 0) {
                 t.completion = t.current + GetServiceBlock5();
-                printf("service for next event: %6.2f\n", t.completion - t.current);
+                //printf("service for next event: %6.2f\n", t.completion - t.current);
 
             }else {
                 t.completion = INFINITY;
@@ -173,7 +173,7 @@ void *block5() {
         t.next = Min(t.arrival, t.completion);  /* next event time   */
         update_next_event(5, t.next, (t.next == t.arrival) ? 0 : 1); /* (t.next == t.arrival) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
-        printf("--------------------------\n\n");
+        //printf("--------------------------\n\n");
 
 
         oper.sem_num = 0;
@@ -186,7 +186,7 @@ void *block5() {
     whoIsFree[4] = 1;
     stopFlag = 5;
     update_next_event(5, INFINITY, -1);
-    printf("\nBLOCK5: Terminated, waiting for the orchestrator...\n");
+    //printf("\nBLOCK5: Terminated, waiting for the orchestrator...\n");
 
     oper.sem_num = 4;
     oper.sem_op = -1;

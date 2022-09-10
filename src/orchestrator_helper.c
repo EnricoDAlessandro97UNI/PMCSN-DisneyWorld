@@ -213,17 +213,15 @@ int get_next_event() {
     int blockNumber = 1;
     double min = globalInfo[0].time;
     for (int i=0; i<5; i++) {
-        printf("Block %d next event time: %6.2f\n", i+1, globalInfo[i].time);
+        //printf("Block %d next event time: %6.2f\n", i+1, globalInfo[i].time);
         if (globalInfo[i].time < min) {
             blockNumber = i+1;
             min = globalInfo[i].time;
         }
 
     }
-    if(globalInfo[1].time == globalInfo[2].time)
-        printf("#yyy %f == %f", globalInfo[1].time, globalInfo[2].time);
 
-    printf("\nMin event time block %d: %6.2f\n", blockNumber, min);
+    //printf("\nMin event time block %d: %6.2f\n", blockNumber, min);
     if(min == INFINITY){
         return -2;
     }else {
@@ -461,7 +459,7 @@ int unlock_waiting_threads(){
             oper.sem_flg = 0;
 
             semop(sem, &oper, 1);
-            printf("\nBLOCK %d going to the end\n", i + 1);
+            //printf("\nBLOCK %d going to the end\n", i + 1);
             c++;
         }
     }

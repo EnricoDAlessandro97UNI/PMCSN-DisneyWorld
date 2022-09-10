@@ -102,7 +102,13 @@ VERIFICA
 
 		
 		
-		
+CONFIGURAZIONE INIZIALE
+	
+		BLOCCO 1: biglietteria --> 10 serventi
+		BLOCCO 2: tornelli disabili --> 1 serventi
+		BLOCCO 3: tornelli normali --> 6 serventi
+		BLOCCO 4: controlli	--> 6 serventi
+		BLOCCO 5: deposito --> 1 serventi
 		
 		
 		

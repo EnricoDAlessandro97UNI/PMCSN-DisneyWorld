@@ -21,7 +21,7 @@
 
 #define START         0.0              /* initial time                   */
 
-#define MU2 0.05
+#define M2 20
 
 
 double GetArrivalBlock2(int blockNum)
@@ -46,7 +46,7 @@ double GetServiceBlock2()
  */
 {
     SelectStream(2);
-    return (Exponential(MU2));
+    return (Exponential(M2));
 }
 
 
@@ -101,10 +101,10 @@ void *block2() {
         printf("\n-------- BLOCK 2 --------\n");
 
         nextEvent = get_next_event_type(2);
-        printf("\nBLOCK 2 type event %d\n", nextEvent);
+        //printf("\nBLOCK 2 type event %d\n", nextEvent);
         if (nextEvent == 0) {
             t.arrival = get_next_event_time(2);
-            printf("\nBLOCK 2 ARRIVAL %f\n", t.arrival);
+            //printf("\nBLOCK 2 ARRIVAL %f\n", t.arrival);
         }
 
 
@@ -126,15 +126,15 @@ void *block2() {
 
             if (number == 1) {
                 t.completion = t.current + GetServiceBlock2();
-                printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
+                //printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
             }
 
             t.arrival = INFINITY;
 
         } else {                                        /* process a completion */
-            printf("\nBLOCK2: Processing a departure...\n");
+            //printf("\nBLOCK2: Processing a departure...\n");
 
-            printf("\nDeparture time  %6.2f\n", t.completion);
+            //printf("\nDeparture time  %6.2f\n", t.completion);
 
             dt = t.current;
 
@@ -142,7 +142,7 @@ void *block2() {
             number--;
             if (number > 0) {
                 t.completion = t.current + GetServiceBlock2();
-                printf("service for next event: %6.2f\n", t.completion - t.current);
+                //printf("service for next event: %6.2f\n", t.completion - t.current);
 
             }else {
                 t.completion = INFINITY;
@@ -157,7 +157,7 @@ void *block2() {
         t.next = Min(t.arrival, t.completion);  /* next event time   */
         update_next_event(2, t.next, (t.next == t.arrival) ? 0 : 1); /* (t.next == t.arrival) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
-        printf("--------------------------\n\n");
+        //printf("--------------------------\n\n");
 
 
         oper.sem_num = 0;
@@ -171,7 +171,7 @@ void *block2() {
     /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
     stopFlag += 2;
     update_next_event(2, INFINITY, -1);
-    printf("\nBLOCK2: Terminated, waiting for the orchestrator...\n");
+    //printf("\nBLOCK2: Terminated, waiting for the orchestrator...\n");
 
     oper.sem_num = 1;
     oper.sem_op = -1;
