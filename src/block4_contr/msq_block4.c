@@ -12,28 +12,20 @@
  */
 
 
-/*
-* Questa è la simulazione per il blocco 4.
-* Si tratta di un multiserver con coda finita, quindi ho modificato msq.c per far si che vengano scartati i job se la coda è piena.
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/sem.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
 #include <sys/mman.h>
-#include <sys/wait.h>
 #include <pthread.h>
 
-#include "../orchestrator_helper.h"
 #include "block4_helper.h"
+#include "../orchestrator_helper.h"
 #include "../rngs.h"
 
-#define START    0.0                    /* initial (open the door)        */
-#define SERVERS_FOUR  4                      /* number of servers              */
-#define THRESHOLD_PROBABILITY 0.4        /* failure probability */
+#define START 0.0          /* initial (open the door)        */
+#define SERVERS_FOUR 4    /* number of servers              */
 
 typedef struct
 {             /* the next-event list    */
@@ -41,9 +33,7 @@ typedef struct
     int x;    /*   event status, 0 or 1 */
 } event_list_four[SERVERS_FOUR + 1];
 
-int feedback_counter;
-
-double GetServiceBlockFour(void)
+double GetServiceBlockfour(void)
 /* ---------------------------------------------
  * generate the next service time, with rate 1/6
  * ---------------------------------------------
@@ -53,7 +43,7 @@ double GetServiceBlockFour(void)
     return (Exponential(2.0));
 }
 
-int NextEventBlockFour(event_list_four event)
+int NextEventBlockfour(event_list_four event)
 /* ---------------------------------------
  * return the index of the next event type
  * ---------------------------------------
@@ -76,7 +66,7 @@ int NextEventBlockFour(event_list_four event)
     return (e);
 }
 
-int FindOneBlockFour(event_list_four event)
+int FindOneBlockfour(event_list_four event)
 /* -----------------------------------------------------
  * return the index of the available server idle longest
  * -----------------------------------------------------
@@ -97,44 +87,46 @@ int FindOneBlockFour(event_list_four event)
     return (s);
 }
 
-
 void *block4() {
 
+    int received = 0;
+
     struct {
-        double current;                  /* current time                       */
-        double next;                     /* next (most imminent) event time    */
+        double current;      /* current time                       */
+        double next;         /* next (most imminent) event time    */
     } t;
 
     event_list_four event;
 
-    long number = 0;             /* number in the node                 */
-    int e;                      /* next event index                   */
-    int s;                      /* server index                       */
-    long index = 0;             /* used to count processed jobs       */
-    double area = 0.0;           /* time integrated number in the node */
-    struct {                           /* accumulated sums of                */
-        double service;                  /*   service times                    */
-        long served;                   /*   number served                    */
+    long number = 0;      /* number in the node                 */
+    int e;                /* next event index                   */
+    int s;                /* server index                       */
+    long index = 0;       /* used to count processed jobs       */
+    double area = 0.0;    /* time integrated number in the node */
+
+    struct {                   /* accumulated sums of */
+        double service;        /*   service times     */
+        long served;           /*   number served     */
     } sum[SERVERS_FOUR + 1];
 
-    int nextEvent;
-    int forwarded = 0;
+    int nextEvent;        /* Next event type */
     double lastArrival;
     double dt = 0;
-    float prob = 0;
 
-    /* Initializes arrival event */
+    /* Initialize arrival event */
     t.current = START;
     event[0].t = 0;
     event[0].x = 1;
 
-    /* Initializes server status */
+    /* Initialize server status */
     for (s = 1; s <= SERVERS_FOUR; s++) {
         event[s].t = START;          /* this value is arbitrary because */
         event[s].x = 0;              /* all servers are initially idle  */
         sum[s].service = 0.0;
         sum[s].served = 0;
     }
+
+    block_queue *arrival = NULL;
 
     struct sembuf oper;
     /* Unlock the orchestrator */
@@ -143,41 +135,48 @@ void *block4() {
     oper.sem_flg = 0;
     semop(mainSem, &oper, 1);
 
-    block_queue *arrival = NULL;
 
-    while ((stopFlag != 3) || (number > 0) || (arrivalsBlockFour != NULL)) {
+    /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
+    while ((stopFlag != 6) || (number > 0) || (arrivalsBlockFour != NULL)) {
 
         /* Wait for the start from the orchestrator */
         oper.sem_num = 3;
         oper.sem_op = -1;
         oper.sem_flg = 0;
-        semop(sem,&oper,1);
+        semop(sem, &oper, 1);
+
+        if (stopFlag2 == 1){
+            break;
+        }
 
         printf("\n-------- BLOCK 4 --------\n");
 
         /* Find next event index */
         nextEvent = get_next_event_type(4);
+        printf("\nBLOCK 4 type event %d\n", nextEvent);
         if (nextEvent == 0) {
             event[0].t = get_next_event_time(4);
+            printf("\nBLOCK 4 ARRIVAL %f\n", event[0].t);
         }
 
-        e = NextEventBlockFour(event);
+        e = NextEventBlockfour(event);
         t.next = event[e].t;
         area += (t.next - t.current) * number; /* update integral  */
         t.current = t.next;  /* advance the clock*/
 
-        if (e == 0) {   /* Process an arrival */
 
-            printf("\nBLOCK4: Processing arrival...\n");
+
+        if (e == 0) {   /* Process an arrival */
+            printf("\nBLOCK4: Processing arrival %6.2f\n", t.current);
+
+            number++;
 
             arrival = GetArrivalFromQueue(4);
             lastArrival = arrival->time;
-            printf("\nt.current %6.2f = arrival %6.2f\n", t.current, arrival->time);
             DeleteFirstArrival(4);
 
             /* Set next arrival event */
-            if (arrivalsBlockFour == NULL) { /* ArrivalBlockFour queue empty */
-                printf("\nBlock four NULL\n");
+            if (arrivalsBlockFour == NULL) { /* ArrivalBlockfour queue empty */
                 event[0].t = INFINITY;
                 event[0].x = 1;
             }
@@ -185,65 +184,60 @@ void *block4() {
                 event[0].t = arrival -> time;
                 event[0].x = 1;
             }
-            
-            if (number < SERVERS_FOUR) {  /* controlla se ci sono server liberi */
-                number++;       /* devo incrementare solo quelli che vengono accettati */
-                double service = GetServiceBlockFour();
+
+            if (number <= SERVERS_FOUR)
+            { /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
+                double service = GetServiceBlockfour();
                 printf("\tService: %6.2f\n", service);
-                s = FindOneBlockFour(event);
+                s = FindOneBlockfour(event);
+                printf("\tServer selected: %d\n", s);
                 sum[s].service += service;
                 sum[s].served++;
                 event[s].t = t.current + service;
+                //printf("\nNext service from server %d: %6.2f\n", s, event[s].t);
                 event[s].x = 1;
-                printf("\tBLOCK4: Accepted --> Terminates: %lf\n", event[s].t);
-            } 
-            else {
-                printf("\tBLOCK4: Forwarded\n");
-                forwarded++;
-                /* il job non viene preso in carico e deve essere mandato al successivo blocco */
-                /* prepara il ritorno da dare all'orchestrator */
-                
-                departureInfo.blockNum = 4;
-                departureInfo.time = t.current;
-                printf("\tDeparture: %6.2f\n", t.current);
             }
         }
-        else {  /* Process a departure */
+        else {  /* Process a departure from server s */
 
             printf("\nBLOCK4: Processing a departure...\n");
-    
+
             index++;
             number--; /* Job completed */
             s = e;
 
-            /* Feedback */
-            prob = get_failure_probability();
-            printf("\nPROB: %f\n", prob);
-            if (prob < THRESHOLD_PROBABILITY) { /* Feedback */
-                printf("\nPROB: feedback\n");
-                feedback_counter++;  /* set the feedback flag for the orchestrator */
-            } 
-            else { /* No feedback */
-                printf("\tDeparture: %6.2f\n", event[s].t);
-                departureInfo.blockNum = 4;
-                departureInfo.time = event[s].t;
+            printf("\nService from server %d\n", s);
+
+            printf("\tDeparture: %6.2f\n", event[s].t);
+            dt = event[s].t;
+            if (number >= SERVERS_FOUR) {
+                double service = GetServiceBlockfour();
+                sum[s].service += service;
+                sum[s].served++;
+                event[s].t = t.current + service;
+            } else {
+                event[s].t = INFINITY;
+                event[s].x = 0;
             }
 
-            event[s].x = 0; /* Server now idle */
-            event[s].t = INFINITY;
+            /* Return departure to the orchestrator */
+            departureInfo.blockNum = 4;
+            departureInfo.time = dt;
         }
 
-        e = NextEventBlockFour(event);  /* next event index */
-        update_next_event(4, event[e].t, (e == 0) ? 0 : 1);     /* (e == 0) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 altrimenti passa 1 */
+        e = NextEventBlockfour(event);
+        update_next_event(4, event[e].t, (e == 0) ? 0 : 1); /* (e == 0) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
         printf("--------------------------\n\n");
+
 
         oper.sem_num = 0;
         oper.sem_op = 1;
         oper.sem_flg = 0;
-        semop(mainSem,&oper,1);
+        semop(mainSem, &oper, 1);
     }
 
+    whoIsFree[3] = 1;
     stopFlag = 4;
     update_next_event(4, INFINITY, -1);
     printf("\nBLOCK4: Terminated, waiting for the orchestrator...\n");
@@ -253,14 +247,14 @@ void *block4() {
     oper.sem_flg = 0;
     semop(sem,&oper,1);
 
-    printf("BLOCK 4 STATISTICS:");
+    printf("\nBLOCK 4 STATISTICS:");
 
-    printf("\n\nfor %ld jobs, forwarded %d\n", index, forwarded);
+    printf("\n\nfor %ld jobs, lost %d, pushed to exit %d\n", index, block4Lost, block4ToExit);
     printf("  avg interarrivals .. = %6.2f\n", lastArrival / index);
     printf("  avg wait ........... = %6.2f\n", area / index);
     printf("  avg # in node ...... = %6.2f\n", area / t.current);
 
-    for (s = 1; s <= SERVERS_FOUR; s++)            /* adjust area to calculate */
+    for (s = 1; s <= SERVERS_FOUR; s++)     /* adjust area to calculate */
         area -= sum[s].service;              /* averages for the queue   */
 
     printf("  avg delay .......... = %6.2f\n", area / index);
@@ -271,10 +265,9 @@ void *block4() {
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double) sum[s].served / index);
+
     printf("\n");
 
-    printf("# of feedback %d\n", feedback_counter);
 
     pthread_exit((void *)0);
-
 }

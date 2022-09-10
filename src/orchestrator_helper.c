@@ -4,6 +4,8 @@
  */
 #include <math.h>
 #include <stdlib.h>
+#include <sys/sem.h>
+#include <pthread.h>
 #include "rngs.h"
 #include "orchestrator_helper.h"
 
@@ -222,7 +224,11 @@ int get_next_event() {
         printf("#yyy %f == %f", globalInfo[1].time, globalInfo[2].time);
 
     printf("\nMin event time block %d: %6.2f\n", blockNumber, min);
-    return blockNumber;
+    if(min == INFINITY){
+        return -2;
+    }else {
+        return blockNumber;
+    }
 }
 
 void create_list() {
@@ -286,6 +292,7 @@ void init_list() {
 /* Initializes the initial state of the global_info structure  */
 void init_global_info_structure() {
     /* Initializes first block */
+    whoIsFree[0] = 0;
     globalInfo[0].time = 0;         /* The first block must have the most immininent event */
     globalInfo[0].eventType = 0;    /* At the beginning all the blocks await an arrival */
 
@@ -293,6 +300,7 @@ void init_global_info_structure() {
     for (int i=1; i<5; i++) {
         globalInfo[i].time = INFINITY;  /* The other blocks have an infinite time  */
         globalInfo[i].eventType = 0;    /* At the beginning all the blocks await an arrival */
+        whoIsFree[i] = 0;
     }
 }
 
@@ -401,4 +409,61 @@ int get_next_event_type(int blockNum) {
 
 double get_next_event_time(int blockNum) {
     return globalInfo[blockNum-1].time;
+}
+
+
+float get_probability() {
+    SelectStream(5);
+    return (float)(Uniform(0.0, 1.0));
+}
+
+double Min(double a, double c)
+/* ------------------------------
+ * return the smaller of a, b
+ * ------------------------------
+ */
+{
+    if (a < c)
+        return (a);
+    else
+        return (c);
+}
+
+float get_forward_probability() {
+    SelectStream(5);
+    return (float)(Uniform(0.0, 1.0));
+}
+
+double Erlang(long n, double b)
+/* ==================================================
+ * Returns an Erlang distributed positive real number.
+ * NOTE: use n > 0 and b > 0.0
+ * ==================================================
+ */
+{
+    long   i;
+    double x = 0.0;
+
+    for (i = 0; i < n; i++)
+        x += Exponential(b);
+    return (x);
+}
+
+
+int unlock_waiting_threads(){
+    struct sembuf oper;
+    int c = 0;
+/* sblocco tutti i thread in ordine in modo che terminino. In questo modo però i blocchi non terminano tutti i job che hanno in coda */
+    for(int i = 0; i < 5; i++) {
+        if(whoIsFree[i] == 0) {
+            oper.sem_num = i;
+            oper.sem_op = 1;
+            oper.sem_flg = 0;
+
+            semop(sem, &oper, 1);
+            printf("\nBLOCK %d going to the end\n", i + 1);
+            c++;
+        }
+    }
+    return 0;
 }

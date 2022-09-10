@@ -20,12 +20,16 @@
 
 
 #define START         0.0              /* initial time                   */
+#define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
 
 
 
 
-double GetArrivalBlock2(int blockNum)
+
+
+
+double GetArrivalBlock5(int blockNum)
 /* ---------------------------------------------
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
@@ -40,7 +44,7 @@ double GetArrivalBlock2(int blockNum)
 }
 
 
-double GetServiceBlock2()
+double GetServiceBlock5()
 /* --------------------------------------------
  * generate the next service time with rate 2/3
  * --------------------------------------------
@@ -53,7 +57,7 @@ double GetServiceBlock2()
 
 
 
-void *block2() {
+void *block5() {
     struct {
         double arrival;                 /* next arrival time                   */
         double completion;              /* next completion time                */
@@ -69,6 +73,8 @@ void *block2() {
     long index = 0;                  /* used to count departed jobs         */
     long number = 0;                  /* number in the node                  */
 
+    float prob = 0;
+    int forwarded = 0;
 
     //PlantSeeds(0);
     t.current = START;           /* set the clock                         */
@@ -87,10 +93,10 @@ void *block2() {
     semop(mainSem, &oper, 1);
 
 
-    while ((stopFlag != 1) || (arrivalsBlockTwo != NULL) || (number > 0)) {
+    while ((stopFlag != 4) || (arrivalsBlockFive != NULL) || (number > 0)) {
 
         /* Wait for the start from the orchestrator */
-        oper.sem_num = 1;
+        oper.sem_num = 4;
         oper.sem_op = -1;
         oper.sem_flg = 0;
         semop(sem, &oper, 1);
@@ -99,13 +105,13 @@ void *block2() {
             break;
         }
 
-        printf("\n-------- BLOCK 2 --------\n");
+        printf("\n-------- BLOCK 5 --------\n");
 
-        nextEvent = get_next_event_type(2);
-        printf("\nBLOCK 2 type event %d\n", nextEvent);
+        nextEvent = get_next_event_type(5);
+        printf("\nBLOCK 5 type event %d\n", nextEvent);
         if (nextEvent == 0) {
-            t.arrival = get_next_event_time(2);
-            printf("\nBLOCK 2 ARRIVAL %f\n", t.arrival);
+            t.arrival = get_next_event_time(5);
+            printf("\nBLOCK 5 ARRIVAL %f\n", t.arrival);
         }
 
 
@@ -121,19 +127,30 @@ void *block2() {
         if(nextEvent == 0){                     /* process an arrival */
             number++;
 
-            t.arrival = GetArrivalFromQueue(2)->time;
-            DeleteFirstArrival(2);
+            t.arrival = GetArrivalFromQueue(5)->time;
+            DeleteFirstArrival(5);
 
+            prob = get_forward_probability();
+            printf("\nPROB: %f\n", prob);
+            if (prob < THRESHOLD_PROBABILITY) { /* Feedback */
+                printf("\nPROB: feedback\n");
+                forwarded++;  /* set the feedback flag for the orchestrator */
+
+                departureInfo.blockNum = 5;
+                departureInfo.time = dt;
+                printf("\tForwarded departure: %6.2f\n", t.current);
+
+            }
 
             if (number == 1) {
-                t.completion = t.current + GetServiceBlock2();
+                t.completion = t.current + GetServiceBlock5();
                 printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
             }
 
             t.arrival = INFINITY;
 
         } else {                                        /* process a completion */
-            printf("\nBLOCK2: Processing a departure...\n");
+            printf("\nBLOCK5: Processing a departure...\n");
 
             printf("\nDeparture time  %6.2f\n", t.completion);
 
@@ -142,7 +159,7 @@ void *block2() {
             index++;
             number--;
             if (number > 0) {
-                t.completion = t.current + GetServiceBlock2();
+                t.completion = t.current + GetServiceBlock5();
                 printf("service for next event: %6.2f\n", t.completion - t.current);
 
             }else {
@@ -150,13 +167,13 @@ void *block2() {
             }
 
             /* Return departure to the orchestrator */
-            departureInfo.blockNum = 2;
+            departureInfo.blockNum = 5;
             departureInfo.time = dt;
 
         }
 
         t.next = Min(t.arrival, t.completion);  /* next event time   */
-        update_next_event(2, t.next, (t.next == t.arrival) ? 0 : 1); /* (t.next == t.arrival) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
+        update_next_event(5, t.next, (t.next == t.arrival) ? 0 : 1); /* (t.next == t.arrival) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
         printf("--------------------------\n\n");
 
@@ -168,18 +185,17 @@ void *block2() {
 
     }
 
-    whoIsFree[1] = 1;
-    /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
-    stopFlag += 2;
-    update_next_event(2, INFINITY, -1);
-    printf("\nBLOCK2: Terminated, waiting for the orchestrator...\n");
+    whoIsFree[4] = 1;
+    stopFlag = 5;
+    update_next_event(5, INFINITY, -1);
+    printf("\nBLOCK5: Terminated, waiting for the orchestrator...\n");
 
-    oper.sem_num = 1;
+    oper.sem_num = 4;
     oper.sem_op = -1;
     oper.sem_flg = 0;
     semop(sem,&oper,1);
 
-    printf("\nBLOCK 2 STATISTICS:");
+    printf("\nBLOCK 5 STATISTICS:");
 
     printf("\nfor %ld jobs\n", index);
     printf("   average interarrival time = %6.2f\n", t.last / index);

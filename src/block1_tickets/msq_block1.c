@@ -25,12 +25,16 @@
 #define START 0.0        /* initial (open the door)        */
 #define SERVERS_ONE 4    /* number of servers              */
 #define STOP 2000.0     /* terminal (close the door) time */
+#define THRESHOLD_PROBABILITY 0.4        /* failure probability */
+
 
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
     int x;    /*   event status, 0 or 1 */
 } event_list_one[SERVERS_ONE + 1];
+
+
 
 double GetArrivalBlockOne(void)
 /* ---------------------------------------------
@@ -103,6 +107,7 @@ void *block1()
 {
 
     stopFlag = 0;
+    stopFlag2 = 0;
 
     struct
     {
@@ -125,6 +130,9 @@ void *block1()
     } sum[SERVERS_ONE + 1];
 
     double dt = 0.0; /* departure time */
+    float prob = 0;
+    int forwarded = 0;
+
 
     PlantSeeds(123456789);
 
@@ -191,8 +199,18 @@ void *block1()
                 event[0].x = 0; /* verranno comunque completati i job rimanenti nel centro */
             }
 
-            if (number <= SERVERS_ONE) 
-            { /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
+            prob = get_forward_probability();
+            printf("\nPROB: %f\n", prob);
+            if (prob < THRESHOLD_PROBABILITY) { /* forwarded */
+                printf("\nPROB: forward\n");
+                forwarded++;
+                number--;
+                departureInfo.blockNum = 1;
+                departureInfo.time = t.current;
+                printf("\tForwarded departure: %6.2f\n", t.current);
+
+            }else if (number <= SERVERS_ONE){
+                /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 double service = GetServiceBlockOne();
                 printf("\tService: %6.2f\n", service);
                 s = FindOneBlockOne(event); /* trova un server vuoto */
@@ -202,9 +220,9 @@ void *block1()
                 event[s].t = t.current + service; /* Aggiorna l'istante del prossimo evento su quel server (partenza) */
                 event[s].x = 1;
             }
-        }
-        else
-        { /* Process a departure from server s */
+
+        }else{ /* Process a departure from server s */
+
             printf("\nBLOCK1: Processing a departure...\n");
             index++;
             number--; /* il job è stato completato */
@@ -252,6 +270,7 @@ void *block1()
 
         printf("--------------------------\n\n");
 
+
         oper.sem_num = 0;
         oper.sem_op = 1;
         oper.sem_flg = 0;
@@ -259,6 +278,7 @@ void *block1()
     }
 
     /* incrementa lo stop flag e metti il tuo next event time a infinito */
+    whoIsFree[0] = 1;
     stopFlag = 1;
     update_next_event(1, INFINITY, -1);
 
@@ -270,7 +290,7 @@ void *block1()
     semop(sem, &oper, 1);
 
     printf("\nBLOCK 1 STATISTICS:");
-    printf("\n\nfor %ld jobs\n", index);
+    printf("\n\nfor %ld jobs, forwarded %d\n", index, forwarded);
     printf("  avg interarrivals .. = %6.6f\n", event[0].t / index);
     printf("  avg wait ........... = %6.6f\n", area / index);
     printf("  avg # in node ...... = %6.6f\n", area / t.current);

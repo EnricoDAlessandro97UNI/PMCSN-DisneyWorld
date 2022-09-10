@@ -39,6 +39,9 @@ typedef struct block_queue {
 } block_queue;
 
 
+extern int whoIsFree[5];
+
+
 /* ogni blocco che ha una partenza alloca spazio e ci mette dentro i valori prescelti.
  * L' orchestrator, dopo aver preso i dati fa la free. */
 extern block_queue *glblDep;
@@ -46,7 +49,7 @@ extern block_queue *glblDep;
 extern glbl_info *glblHead;
 
 /* -------------- GLOBAL VARIABLES -------------- */
-extern global_info globalInfo[4];
+extern global_info globalInfo[5];
 
 extern block_queue *arrivalsBlockOne;
 extern block_queue *arrivalsBlockTwo;
@@ -60,6 +63,13 @@ extern int sem;
 extern int mainSem;
 
 extern int stopFlag;
+extern int stopFlag2;
+
+
+extern int block4Lost;
+extern int block4ToExit;
+
+
 /* ---------------------------------------------- */
 
 extern int feedback_counter;
@@ -86,5 +96,10 @@ int DeleteFirstArrival(int block);
 int get_available_e_flag(int block);
 void update_next_event_after_arrival(int block, double time);
 int set_available_e_flag(int block);
+float get_probability();
+double Min(double a, double c);
+float get_forward_probability();
+double Erlang(long n, double b);
+int unlock_waiting_threads();
 
 #endif 

@@ -26,7 +26,7 @@ pthread_t tid[5];
 glbl_info *glblHead;
 
 /* ----------- GLOBAL VARIABLES ----------- */
-global_info globalInfo[4];
+global_info globalInfo[5];
 block_queue *glblDep;
 block_queue *arrivalsBlockOne;
 block_queue *arrivalsBlockTwo;
@@ -38,7 +38,15 @@ departure_info departureInfo;
 int sem;
 int mainSem;
 
+int whoIsFree[5];
+
 int stopFlag;
+int stopFlag2;
+
+int block4Lost;
+int block4ToExit;
+
+
 /* ---------------------------------------- */
 
 
@@ -80,11 +88,19 @@ void create_threads() {
 
 }
 
+
+
+
+
 int main() {
 	int blockNumber;
     int i;
 
-    int passedToThree = 0;
+    int c2 = 0;
+    int c3 = 0;
+
+    block4Lost = 0;
+    block4ToExit = 0;
 
     struct sembuf oper;
 
@@ -127,7 +143,7 @@ int main() {
     /* Creation of threads */
     create_threads();
 
-    int three = 0;
+    float prob = 0;
 
     /* Waiting for threads creation */
     oper.sem_num = 0;
@@ -179,9 +195,24 @@ int main() {
                 printf("\nORCHESTRATOR: Error get_next_event\n");
                 exit(EXIT_FAILURE); 
 
+            case -2:
+                printf("All blocks have finished, going to close\n");
+                stopFlag2 = 1;
+                int ret = unlock_waiting_threads();
+                /* attendi che quei thread terminino */
+                oper.sem_num = 0;
+                oper.sem_op = (short)-ret;
+                oper.sem_flg = 0;
+                semop(mainSem, &oper, 1);
+                break;
 
             default:
                 continue;
+        }
+
+        if(stopFlag2 == 1) {
+            /* tutti i thread sono in attesa di stampare le statistiche, salta a quel punto */
+            goto statistics;
         }
 
         /* Waiting for thread operation */
@@ -190,6 +221,7 @@ int main() {
         oper.sem_flg = 0;
         semop(mainSem, &oper, 1);
 
+
         /* Se il blocco che ha appena terminato ha processato
          * una partenza, questa deve essere posta come arrivo per il blocco
          * successivo. Ogni thead deve quindi 'restituire' qualcosa al
@@ -197,23 +229,76 @@ int main() {
          * arrivo nella lista di un blocco */
         if (departureInfo.time != -1) {  /* vuol dire che c'è stata una partenza dal blocco che ha appena terminato quindi un arrivo nel blocco successivo */
 
-            printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, (departureInfo.blockNum)+1);
+            if(departureInfo.blockNum == 1){
+                prob = get_probability();
+                if(prob <= 0.1){
+                    /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco per disabili */
+                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 2);
 
+                    add_event_to_queue(departureInfo.time, 2);
 
-            add_event_to_queue(departureInfo.time, (departureInfo.blockNum) + 1);
+                    departureInfo.time = -1;
+                    c2++;
 
-            departureInfo.time = -1;
+                }else{
+                    /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco 3, non per disabili*/
+                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 3);
+
+                    add_event_to_queue(departureInfo.time, 3);
+
+                    departureInfo.time = -1;
+
+                    c3++;
+                }
+
+            }else if(departureInfo.blockNum == 2 || departureInfo.blockNum == 3){
+
+                /* vuol dire che la partenza nel blocco 1 sarà un arrivo nel blocco per disabili */
+                printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 4);
+
+                add_event_to_queue(departureInfo.time, 4);
+
+                departureInfo.time = -1;
+
+            }else if(departureInfo.blockNum == 4){
+
+                prob = get_probability();
+                if(prob <= 0.2){
+                    /* vuol dire che la partenza nel blocco 4 sarà un arrivo nel blocco 5 del deposito */
+                    printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 5);
+
+                    add_event_to_queue(departureInfo.time, 5);
+
+                    departureInfo.time = -1;
+
+                } else if(prob > 0.2 && prob <= 0.8){
+                    block4ToExit++;
+                    printf("Orchestrator forwarded departure from block %d\n", departureInfo.blockNum);
+                    departureInfo.time = -1;
+
+                }else{
+                    /* è una perdita */
+                    block4Lost++;
+                    printf("Orchestrator lost from block %d, time %6.2f\n", departureInfo.blockNum, departureInfo.time);
+                    departureInfo.time = -1;
+
+                }
+
+            }else{
+                /* vuol dire che è una partenza dal blocco 5 */
+                printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, departureInfo.blockNum + 1);
+
+                add_event_to_queue(departureInfo.time, departureInfo.blockNum + 1);
+
+                departureInfo.time = -1;
+            }
+
         }
 
-        printf("\n\n #www stopFlag %d\n\n", stopFlag);
-        if (stopFlag == 5) {
+statistics:
+        printf("\n\n #www stopFlag2 %d\n\n", stopFlag2);
+        if (stopFlag2 == 1) {
 
-            /*oper.sem_num = 4;
-            oper.sem_op = 1;
-            oper.sem_flg = 0;
-
-            semop(sem, &oper, 1);
-            */
             printf("\n\n| ------------------ STATISTICS ------------------ |\n");
 
             /* sblocco tutti i thread in ordine in modo che terminino. In questo modo però i blocchi non terminano tutti i job che hanno in coda */
@@ -232,6 +317,8 @@ int main() {
     }
 
     printf("\n| ------------------------------------------------ |\n\n");
+
+    printf("c2 = %d and c3 = %d\n", c2, c3);
 
 
     exit(0);

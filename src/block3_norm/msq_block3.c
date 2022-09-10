@@ -137,7 +137,7 @@ void *block3() {
 
 
 
-    while ((stopFlag != 2) || (number > 0) || (arrivalsBlockThree != NULL)) {
+    while ((stopFlag != 1) || (number > 0) || (arrivalsBlockThree != NULL)) {
 
         /* Wait for the start from the orchestrator */
         oper.sem_num = 2;
@@ -145,6 +145,9 @@ void *block3() {
         oper.sem_flg = 0;
         semop(sem, &oper, 1);
 
+        if (stopFlag2 == 1){
+            break;
+        }
 
         printf("\n-------- BLOCK 3 --------\n");
 
@@ -226,14 +229,17 @@ void *block3() {
         update_next_event(3, event[e].t, (e == 0) ? 0 : 1); /* (e == 0) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
         printf("--------------------------\n\n");
-    
+
+
         oper.sem_num = 0;
         oper.sem_op = 1;
         oper.sem_flg = 0;
         semop(mainSem, &oper, 1);
     }
 
-    stopFlag = 3;
+    whoIsFree[2] = 1;
+    /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
+    stopFlag += 3;
     update_next_event(3, INFINITY, -1);
     printf("\nBLOCK3: Terminated, waiting for the orchestrator...\n");
 
