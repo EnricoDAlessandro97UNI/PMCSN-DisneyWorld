@@ -12,21 +12,20 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/sem.h>
-#include <sys/mman.h>
 #include <math.h>
 #include <pthread.h>
 
 #include "../orchestrator_helper.h"
-#include "../rngs.h"
 #include "block1_helper.h"
 
 #define START 0.0        /* initial (open the door)        */
 #define SERVERS_ONE 4    /* number of servers              */
-#define STOP 2000.0     /* terminal (close the door) time */
+#define STOP 36000.0     /* terminal (close the door) time */
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
+#define LAMBDA 1.27778
+#define MU1 0.0084
 
 typedef struct
 {             /* the next-event list    */
@@ -36,7 +35,7 @@ typedef struct
 
 
 
-double GetArrivalBlockOne(void)
+double GetArrivalBlockOneF1(void)
 /* ---------------------------------------------
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
@@ -45,7 +44,20 @@ double GetArrivalBlockOne(void)
     static double arrival = START;
 
     SelectStream(0);
-    arrival += Exponential(2.0);
+    arrival += Exponential(LAMBDA);
+    return (arrival);
+}
+
+double GetArrivalBlockOneF2(void)
+/* ---------------------------------------------
+ * generate the next arrival time, with rate 1/2
+ * ---------------------------------------------
+ */
+{
+    static double arrival = START;
+
+    SelectStream(0);
+    arrival += Exponential(MU1);
     return (arrival);
 }
 
@@ -138,7 +150,7 @@ void *block1()
 
     /* Initialize arrival event */
     t.current = START;
-    event[0].t = GetArrivalBlockOne();
+    event[0].t = GetArrivalBlockOneF1();
     event[0].x = 1;
 
     /* Initialize server status */
@@ -166,7 +178,7 @@ void *block1()
         oper.sem_flg = 0;
         semop(sem, &oper, 1);
 
-        printf("\n-------- BLOCK 1 --------\n");
+        //printf("\n-------- BLOCK 1 --------\n");
 
         /* Find next event index */
         e = NextEventBlockOne(event);
@@ -179,8 +191,8 @@ void *block1()
         if (e == 0)
         { /* Process an arrival */
 
-            printf("\nBLOCK1: Processing an arrival...\n");
-            printf("\tCurrent arrival time: %6.2f\n", event[0].t);
+            //printf("\nBLOCK1: Processing an arrival...\n");
+            //printf("\tCurrent arrival time: %6.2f\n", event[0].t);
 
             /* Handle feedback_counter
             if (feedback_counter != 0) {
@@ -191,7 +203,7 @@ void *block1()
 
             number++;
 
-            event[0].t = GetArrivalBlockOne(); /* genera l'istante del prossimo arrivo */
+            event[0].t = GetArrivalBlockOneF1(); /* genera l'istante del prossimo arrivo */
             //printf("\tNext arrival: %6.2f\n", event[0].t);
 
             if (event[0].t > STOP) 
@@ -200,21 +212,21 @@ void *block1()
             }
 
             prob = get_forward_probability();
-            printf("\nPROB: %f\n", prob);
+            //printf("\nPROB: %f\n", prob);
             if (prob < THRESHOLD_PROBABILITY) { /* forwarded */
-                printf("\nPROB: forward\n");
+                //printf("\nPROB: forward\n");
                 forwarded++;
                 number--;
                 departureInfo.blockNum = 1;
                 departureInfo.time = t.current;
-                printf("\tForwarded departure: %6.2f\n", t.current);
+                //printf("\tForwarded departure: %6.2f\n", t.current);
 
             }else if (number <= SERVERS_ONE){
                 /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 double service = GetServiceBlockOne();
-                printf("\tService: %6.2f\n", service);
+                //printf("\tService: %6.2f\n", service);
                 s = FindOneBlockOne(event); /* trova un server vuoto */
-                printf("\tServer selected: %d\n", s);
+                //printf("\tServer selected: %d\n", s);
                 sum[s].service += service;
                 sum[s].served++;
                 event[s].t = t.current + service; /* Aggiorna l'istante del prossimo evento su quel server (partenza) */
@@ -223,12 +235,12 @@ void *block1()
 
         }else{ /* Process a departure from server s */
 
-            printf("\nBLOCK1: Processing a departure...\n");
+            //printf("\nBLOCK1: Processing a departure...\n");
             index++;
             number--; /* il job è stato completato */
             s = e;
 
-            printf("\tDeparture: %6.2f\n", event[s].t);
+            //printf("\tDeparture: %6.2f\n", event[s].t);
             dt = event[s].t;
             if (number >= SERVERS_ONE)
             { /* se ci sono job in coda allora assegniamo un nuovo job
@@ -266,9 +278,9 @@ void *block1()
         e = NextEventBlockOne(event);                       /* next event index */
         update_next_event(1, event[e].t, (e == 0) ? 0 : 1); /* (e == 0) ? 0 : 1 significa che se e è uguale a 0 allora passa 0 (arrivo) altrimenti passa 1 (partenza) */
 
-        printf("\n\tnumber: %ld arrival status: %d\n", number, event[0].x);
+        //printf("\n\tnumber: %ld arrival status: %d\n", number, event[0].x);
 
-        printf("--------------------------\n\n");
+        //printf("--------------------------\n\n");
 
 
         oper.sem_num = 0;

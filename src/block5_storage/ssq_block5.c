@@ -22,9 +22,7 @@
 #define START         0.0              /* initial time                   */
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
-
-
-
+#define MU5 0.0084
 
 
 
@@ -50,8 +48,8 @@ double GetServiceBlock5()
  * --------------------------------------------
  */
 {
-    SelectStream(1);
-    return (Erlang(5, 0.3));
+    SelectStream(5);
+    return (Exponential(MU5));
 }
 
 

@@ -21,8 +21,7 @@
 
 #define START         0.0              /* initial time                   */
 
-
-
+#define MU2 0.05
 
 
 double GetArrivalBlock2(int blockNum)
@@ -46,8 +45,8 @@ double GetServiceBlock2()
  * --------------------------------------------
  */
 {
-    SelectStream(1);
-    return (Erlang(5, 0.3));
+    SelectStream(2);
+    return (Exponential(MU2));
 }
 
 

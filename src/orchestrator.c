@@ -263,7 +263,7 @@ int main() {
             }else if(departureInfo.blockNum == 4){
 
                 prob = get_probability();
-                if(prob <= 0.2){
+                if(prob <= 0.4){
                     /* vuol dire che la partenza nel blocco 4 sarà un arrivo nel blocco 5 del deposito */
                     printf("\tORCHESTRATOR: Passing departure %6.2f to block %d\n", departureInfo.time, 5);
 
@@ -271,7 +271,7 @@ int main() {
 
                     departureInfo.time = -1;
 
-                } else if(prob > 0.2 && prob <= 0.8){
+                } else if(prob > 0.4 && prob <= 0.9){
                     block4ToExit++;
                     printf("Orchestrator forwarded departure from block %d\n", departureInfo.blockNum);
                     departureInfo.time = -1;

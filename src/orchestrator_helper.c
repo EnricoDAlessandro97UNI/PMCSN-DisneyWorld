@@ -413,7 +413,7 @@ double get_next_event_time(int blockNum) {
 
 
 float get_probability() {
-    SelectStream(5);
+    SelectStream(6);
     return (float)(Uniform(0.0, 1.0));
 }
 
@@ -430,7 +430,7 @@ double Min(double a, double c)
 }
 
 float get_forward_probability() {
-    SelectStream(5);
+    SelectStream(7);
     return (float)(Uniform(0.0, 1.0));
 }
 

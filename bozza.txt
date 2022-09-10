@@ -1,0 +1,120 @@
+OBIETTIVO
+	- minimizzare i costi
+	- rispettare i QoS
+		- limitare i tempi di risposta 10 m
+		- limitare il tempo di risposta per il controllo da parte della sicurezza a 5 minuti (metal detector) (dato che i controlli sono obbligatori per tutti)
+		
+
+UTENTI
+	- senza disabilità
+	- con disabilità
+
+EVENTI
+	- arrivo
+	- completamento servizio
+	
+VARIABILI DI STATO
+	- numero di serventi nelle due fasce orarie
+	- numero di utenti per ogni centro
+	- numero di utenti in servizio per ogni centro
+
+MODELLO DELLE SPECIFICHE
+PERIODO DI OSSERVAZIONE
+	- 16 ore (8:00 - 24:00)
+	- due fasce orarie
+		- Fascia 1: entrate giornaliere (8:00 - 18:00)	
+		- Fascia 2: entrate serali (18:00 - 24:00)
+		
+	Dai dati raccolti si è evidenziato che le entrate medie giornaliere presso il parco sono di 56000, di cui:
+		- 46000 giornaliere (Fascia 1) --> lambda1 = 1.27778 p/s
+		- 10000 serali (Fascia 2) --> lambda2 = 0.46296	p/s
+	
+	I tempi di servizio sono esponenziali
+		
+
+TEMPI
+	- acquito biglietto: 2 m = 120 s --> mu = 1/120 = 8.4 x 10^-3
+	- tornelli disabili: 20 s --> mu = 0.05
+	- tornelli normali: 10 s --> mu = 0.1
+	- controlli: 4 m = 240 s --> mu = 4.1667 x 10^-3
+	- deposito: 2 m = 120 s --> mu = 1/120 = 8.4 x 10^-3
+
+COSTI
+	- personale biglietteria/deposito/tornelloDis
+		- Fascia 1: 9$/h
+		- Fascia 2: 12$/h
+	- personale controlli
+		- Fascia 1: 14$/h
+		- Fascia 2: 16$/h
+	- affito tornelli automatici
+		- 6$/d
+	- metal detector
+		- 100$/d
+		
+GUADAGNI
+	- Fascia 1
+		- acquisto online: 110$
+			- bambini 90$
+		- acquisto cassa: 125$
+			- bambini 110$
+		
+		
+	- Fascia 2
+		- acquisto online: 75$
+			- bambini 60$
+		- acquisto cassa: 90$
+			- bambini 70$
+			
+	- Deposito
+		- 7$
+
+PERCENTUALI
+	- acquisto biglietto online: 40%	
+	- acquisto in cassa: 60%
+	- disabili: 10%
+	- altri arrivi: 90%
+	- deposito: 40%
+	- lasciati passare:  50%
+	- negato accesso: 10%
+	- percentuale bambini: 60%
+	- adulti: 40%
+		
+		
+MODELLO COMPUTAZIONALE
+Nei centri multierveviene utilizzato l'approccio Equity, in modo che ogni servente venga utilizzato in maniera equa: si affida il servizio al servente libero da più tempo.
+
+Per le percentuali d'istradamento è stata utilizzata la funzione Uniform(0,1).
+
+
+VERIFICA
+ - il numero di utenti in un centro deve essere uguale al numero di utenti in coda più il numero di utenti in servizio
+ - il tempo di risposta deve essere uguale alla somma del tempo trascorso in coda più il tempo di servizio
+ - il numero di arrivi deve essere uguale al numero di completamenti più il numero di persone a cui è stato negato l'accesso
+ - il numero di utenti in ingresso in un centro è determinato dalla probabilità di routing indicata nel modello delle specifiche
+ 
+	BLOCCO 1: biglietteria
+	BLOCCO 2: tornelli disabili
+	BLOCCO 3: tornelli normali
+	BLOCCO 4: controlli
+	BLOCCO 5: deposito
+	
+
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		 
+	

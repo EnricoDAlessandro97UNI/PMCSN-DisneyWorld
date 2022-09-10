@@ -27,6 +27,9 @@
 #define START 0.0          /* initial (open the door)        */
 #define SERVERS_THREE 4    /* number of servers              */
 
+#define MU3 0.1
+
+
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
@@ -40,7 +43,7 @@ double GetServiceBlockThree(void)
  */
 {
     SelectStream(3);
-    return (Exponential(2.0));
+    return (Exponential(MU3));
 }
 
 int NextEventBlockThree(event_list_three event)

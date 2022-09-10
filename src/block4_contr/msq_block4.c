@@ -27,6 +27,9 @@
 #define START 0.0          /* initial (open the door)        */
 #define SERVERS_FOUR 4    /* number of servers              */
 
+#define MU4 0.0041667
+
+
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
@@ -40,7 +43,7 @@ double GetServiceBlockfour(void)
  */
 {
     SelectStream(4);
-    return (Exponential(2.0));
+    return (Exponential(MU4));
 }
 
 int NextEventBlockfour(event_list_four event)
