@@ -20,14 +20,14 @@
 #include "block1_helper.h"
 
 #define START 0.0        /* initial (open the door)        */
-#define SERVERS_ONE 40    /* number of servers              */
+#define SERVERS_ONE 20    /* number of servers              */
 #define STOP 36000.0     /* terminal (close the door) time  (Fascia1: 36000, Fascia2: 21600)*/
-#define THRESHOLD_PROBABILITY 0.4        /* failure probability */
+#define THRESHOLD_PROBABILITY 0.6        /* forward probability */
 
 /* ricordiamoci che questi sono 1/lambda */
-#define LAMBDA1 0.78
-#define LAMBDA2 2.16
 
+#define INT1 2.4    /* interrarivi (1/lambda1) */
+#define INT2 4.32   /* interrarivi (1/lambda2) */
 #define M1 120
 
 typedef struct
@@ -47,7 +47,7 @@ double GetArrivalBlockOne(void)
     static double arrival = START;
 
     SelectStream(0);
-    arrival += Exponential(LAMBDA1);
+    arrival += Exponential(INT1);
 
     return (arrival);
 }
@@ -127,6 +127,8 @@ void *block1()
     long index = 0;    /* used to count processed jobs       */
     double area = 0.0; /* time integrated number in the node */
 
+    double tmpArea = 0.0;
+
     struct
     {                   /* accumulated sums of  */
         double service; /*   service times      */
@@ -137,6 +139,7 @@ void *block1()
     float prob = 0;
     int forwarded = 0;
 
+    double lastArrival = 0.0;
 
     PlantSeeds(987654321);
 
@@ -175,7 +178,8 @@ void *block1()
         /* Find next event index */
         e = NextEventBlockOne(event);
         t.next = event[e].t;                   /* next event time  */
-        area += (t.next - t.current) * number; /* update integral  */
+        //area += (t.next - t.current) * number; /* update integral  */
+        tmpArea = (t.next - t.current) * number; /* update integral  */
         t.current = t.next;                    /* advance the clock*/
 
         //printf("\nCurrent time: %6.2f\n", t.current);
@@ -215,6 +219,7 @@ void *block1()
 
             }else if (number <= SERVERS_ONE){
                 /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
+                lastArrival = event[0].t;
                 double service = GetServiceBlockOne();
                 //printf("\tService: %6.2f\n", service);
                 s = FindOneBlockOne(event); /* trova un server vuoto */
@@ -223,6 +228,12 @@ void *block1()
                 sum[s].served++;
                 event[s].t = t.current + service; /* Aggiorna l'istante del prossimo evento su quel server (partenza) */
                 event[s].x = 1;
+
+                area += tmpArea;
+
+            }else{
+                lastArrival = event[0].t;
+                area += tmpArea;
             }
 
         }else{ /* Process a departure from server s */
@@ -231,6 +242,8 @@ void *block1()
             index++;
             number--; /* il job è stato completato */
             s = e;
+
+            area += tmpArea;
 
             //printf("\tDeparture: %6.2f\n", event[s].t);
             dt = event[s].t;
@@ -295,7 +308,7 @@ void *block1()
 
     printf("\nBLOCK 1 STATISTICS:");
     printf("\n\nfor %ld jobs, forwarded %d\n", index, forwarded);
-    printf("  avg interarrivals .. = %6.6f\n", event[0].t / index);
+    printf("  avg interarrivals .. = %6.6f\n", lastArrival / index);
     printf("  avg wait ........... = %6.6f\n", area / index);
     printf("  avg # in node ...... = %6.6f\n", area / t.current);
 

@@ -16,13 +16,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <sys/sem.h>
-#include "../orchestrator_helper.h"
+#include "orchestrator_helper.h"
 
 
 #define START         0.0              /* initial time                   */
 #define THRESHOLD_PROBABILITY 0.4        /* failure probability */
 
-#define M5 120
+#define M5 40
 
 
 
@@ -73,6 +73,8 @@ void *block5() {
 
     float prob = 0;
     int forwarded = 0;
+
+    double lastArrival = 0.0;
 
     //PlantSeeds(0);
     t.current = START;           /* set the clock                         */
@@ -126,19 +128,9 @@ void *block5() {
             number++;
 
             t.arrival = GetArrivalFromQueue(5)->time;
+            lastArrival = t.arrival;
             DeleteFirstArrival(5);
 
-            prob = get_forward_probability();
-            //printf("\nPROB: %f\n", prob);
-            if (prob < THRESHOLD_PROBABILITY) { /* Feedback */
-                //printf("\nPROB: feedback\n");
-                forwarded++;  /* set the feedback flag for the orchestrator */
-
-                departureInfo.blockNum = 5;
-                departureInfo.time = dt;
-                //printf("\tForwarded departure: %6.2f\n", t.current);
-
-            }
 
             if (number == 1) {
                 t.completion = t.current + GetServiceBlock5();
@@ -196,7 +188,7 @@ void *block5() {
     printf("\nBLOCK 5 STATISTICS:");
 
     printf("\nfor %ld jobs\n", index);
-    printf("   average interarrival time = %6.2f\n", t.last / index);
+    printf("   average interarrival time = %6.2f\n", lastArrival / index);
     printf("   average wait ............ = %6.2f\n", area.node / index);
     printf("   average delay ........... = %6.2f\n", area.queue / index);
     printf("   average service time .... = %6.2f\n", area.service / index);

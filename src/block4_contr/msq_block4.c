@@ -25,9 +25,9 @@
 #include "../rngs.h"
 
 #define START 0.0          /* initial (open the door)        */
-#define SERVERS_FOUR 6    /* number of servers              */
+#define SERVERS_FOUR 48    /* number of servers              */
 
-#define M4 240
+#define M4 120
 
 
 typedef struct
@@ -107,6 +107,7 @@ void *block4() {
     long index = 0;       /* used to count processed jobs       */
     double area = 0.0;    /* time integrated number in the node */
 
+
     struct {                   /* accumulated sums of */
         double service;        /*   service times     */
         long served;           /*   number served     */
@@ -140,7 +141,7 @@ void *block4() {
 
 
     /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
-    while ((stopFlag != 6) || (number > 0) || (arrivalsBlockFour != NULL)) {
+    while ((stopFlag != 11) || (number > 0) || (arrivalsBlockFour != NULL)) {
 
         /* Wait for the start from the orchestrator */
         oper.sem_num = 3;
@@ -226,6 +227,7 @@ void *block4() {
             /* Return departure to the orchestrator */
             departureInfo.blockNum = 4;
             departureInfo.time = dt;
+            //printf("lasta departure: %6.2f\n", dt);
         }
 
         e = NextEventBlockfour(event);

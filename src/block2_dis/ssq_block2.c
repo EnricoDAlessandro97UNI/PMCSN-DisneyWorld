@@ -68,6 +68,7 @@ void *block2() {
     long index = 0;                  /* used to count departed jobs         */
     long number = 0;                  /* number in the node                  */
 
+    double lastArrival = 0.0;
 
     //PlantSeeds(0);
     t.current = START;           /* set the clock                         */
@@ -121,6 +122,7 @@ void *block2() {
             number++;
 
             t.arrival = GetArrivalFromQueue(2)->time;
+            lastArrival = t.arrival;
             DeleteFirstArrival(2);
 
 
@@ -169,7 +171,7 @@ void *block2() {
 
     whoIsFree[1] = 1;
     /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
-    stopFlag += 2;
+    stopFlag += 5;
     update_next_event(2, INFINITY, -1);
     //printf("\nBLOCK2: Terminated, waiting for the orchestrator...\n");
 
@@ -181,7 +183,7 @@ void *block2() {
     printf("\nBLOCK 2 STATISTICS:");
 
     printf("\nfor %ld jobs\n", index);
-    printf("   average interarrival time = %6.2f\n", t.last / index);
+    printf("   average interarrival time = %6.2f\n", lastArrival / index);
     printf("   average wait ............ = %6.2f\n", area.node / index);
     printf("   average delay ........... = %6.2f\n", area.queue / index);
     printf("   average service time .... = %6.2f\n", area.service / index);

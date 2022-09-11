@@ -1,8 +1,8 @@
 OBIETTIVO
 	- minimizzare i costi
 	- rispettare i QoS
-		- limitare i tempi di risposta 10 m
-		- limitare il tempo di risposta per il controllo da parte della sicurezza a 5 minuti (metal detector) (dato che i controlli sono obbligatori per tutti)
+		- limitare i tempi di risposta 25 m
+		- limitare il tempo di risposta per il controllo da parte della sicurezza a 10 minuti (metal detector) (dato che i controlli sono obbligatori per tutti)
 		
 
 UTENTI
@@ -25,11 +25,11 @@ PERIODO DI OSSERVAZIONE
 		- Fascia 1: entrate giornaliere (8:00 - 18:00)	
 		- Fascia 2: entrate serali (18:00 - 24:00)
 		
-	Dai dati raccolti si è evidenziato che le entrate medie giornaliere presso il parco sono di 56000, di cui:
-		- 46000 giornaliere (Fascia 1) --> lambda1 = 1.27778 p/s
-		- 10000 serali (Fascia 2) --> lambda2 = 0.46296	p/s
+	Dai dati raccolti si è evidenziato che le entrate medie giornaliere presso il parco sono di 20000, di cui:
+		- 15000 giornaliere (Fascia 1) --> lambda1 = 0.41667 p/s	--> 1/lambda1 = 2.4
+		- 5000 serali (Fascia 2) --> lambda2 = 0.23148	p/s		1/lambda2 = 4.32
 	
-	I tempi di servizio sono esponenziali
+	I tempi di servizio sono esponenziali.
 		
 
 TEMPI
@@ -38,6 +38,7 @@ TEMPI
 	- tornelli normali: 10 s --> mu = 0.1
 	- controlli: 4 m = 240 s --> mu = 4.1667 x 10^-3
 	- deposito: 2 m = 120 s --> mu = 1/120 = 8.4 x 10^-3
+	
 
 COSTI
 	- personale biglietteria/deposito/tornelloDis
@@ -102,9 +103,12 @@ VERIFICA
 
 		
 		
-CONFIGURAZIONE INIZIALE
+CONFIGURAZIONE INIZIALE/OTTIMALE
 	
-		BLOCCO 1: biglietteria --> 10 serventi
+		BLOCCO 1: biglietteria:
+			- Fascia 1: 20 serventi
+			- Fascia 2: 11 serventi
+			
 		BLOCCO 2: tornelli disabili --> 1 serventi
 		BLOCCO 3: tornelli normali --> 6 serventi
 		BLOCCO 4: controlli	--> 6 serventi

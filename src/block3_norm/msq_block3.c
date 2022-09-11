@@ -27,7 +27,7 @@
 #define START 0.0          /* initial (open the door)        */
 #define SERVERS_THREE 6    /* number of servers              */
 
-#define M3 10
+#define M3 15
 
 
 typedef struct
@@ -115,6 +115,7 @@ void *block3() {
     int nextEvent;        /* Next event type */
     double lastArrival;
     double dt = 0;
+    double service;
 
     /* Initialize arrival event */
     t.current = START;
@@ -190,7 +191,7 @@ void *block3() {
 
             if (number <= SERVERS_THREE) 
             { /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
-                double service = GetServiceBlockThree();
+                service = GetServiceBlockThree();
                 //printf("\tService: %6.2f\n", service);
                 s = FindOneBlockThree(event);
                 //printf("\tServer selected: %d\n", s);
@@ -214,7 +215,7 @@ void *block3() {
             //printf("\tDeparture: %6.2f\n", event[s].t);
             dt = event[s].t;
             if (number >= SERVERS_THREE) {
-                double service = GetServiceBlockThree();
+                service = GetServiceBlockThree();
                 sum[s].service += service;
                 sum[s].served++;
                 event[s].t = t.current + service;
@@ -242,7 +243,7 @@ void *block3() {
 
     whoIsFree[2] = 1;
     /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
-    stopFlag += 3;
+    stopFlag += 5;
     update_next_event(3, INFINITY, -1);
     //printf("\nBLOCK3: Terminated, waiting for the orchestrator...\n");
 
