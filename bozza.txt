@@ -109,10 +109,21 @@ CONFIGURAZIONE INIZIALE/OTTIMALE
 			- Fascia 1: 20 serventi
 			- Fascia 2: 11 serventi
 			
-		BLOCCO 2: tornelli disabili --> 1 serventi
-		BLOCCO 3: tornelli normali --> 6 serventi
-		BLOCCO 4: controlli	--> 6 serventi
-		BLOCCO 5: deposito --> 1 serventi
+		BLOCCO 2: tornelli disabili:
+			- Fascia 1: 1 servente
+			- Fascia 2: 1 servente
+			
+		BLOCCO 3: tornelli normali:
+			- Fascia 1: 6 serventi
+			- Fascia 2: 4 serventi
+			
+		BLOCCO 4: controlli:
+			- Fascia 1: 48 serventi
+			- Fascia 2: 26 serventi
+			
+		BLOCCO 5: deposito
+			- Fascia 1: 7 serventi
+			- Fascia 2: 5 serventi
 		
 		
 		

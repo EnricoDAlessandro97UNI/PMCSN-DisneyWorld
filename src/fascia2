@@ -1,0 +1,120 @@
+
+
+
+| ------------------ STATISTICS ------------------ |
+
+BLOCK 1 STATISTICS:
+
+for 1940 jobs, forwarded 2931
+  avg interarrivals .. = 11.139575
+  avg wait ........... = 216.340188
+  avg # in node ...... = 19.166900
+  avg delay .......... = 94.489561
+  avg # in queue ..... = 8.371408
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.981          126.32           0.088
+       2          0.989          159.20           0.070
+       3          0.982          112.57           0.098
+       4          0.979          114.07           0.097
+       5          0.979          109.90           0.101
+       6          0.981          116.73           0.095
+       7          0.979          112.87           0.098
+       8          0.983          125.83           0.088
+       9          0.988          125.05           0.089
+      10          0.977          124.33           0.089
+      11          0.979          126.06           0.088
+
+
+BLOCK 2 STATISTICS:
+for 491 jobs
+   average interarrival time =  44.16
+   average wait ............ =  34.35
+   average delay ........... =  15.06
+   average service time .... =  19.29
+   average # in the node ... =   0.78
+   average # in the queue .. =   0.34
+   utilization ............. =   0.44
+
+BLOCK 3 STATISTICS:
+
+for 4380 jobs
+  avg interarrivals .. =   5.00
+  avg wait ........... =  21.10
+  avg # in node ...... =   4.22
+  avg delay .......... =   6.05
+  avg # in queue ..... =   1.21
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.847           15.64           0.271
+       2          0.786           14.03           0.280
+       3          0.719           14.71           0.245
+       4          0.655           16.08           0.204
+
+
+BLOCK 4 STATISTICS:
+
+for 4871 jobs, lost 501, pushed to exit 2984
+  avg interarrivals .. =   4.50
+  avg wait ........... = 585.17
+  avg # in node ...... = 123.07
+  avg delay .......... = 465.84
+  avg # in queue ..... =  97.98
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.966          110.74           0.041
+       2          0.969          113.88           0.040
+       3          0.967          105.63           0.044
+       4          0.977          118.41           0.039
+       5          0.978          115.59           0.040
+       6          0.975          114.03           0.041
+       7          0.995          118.14           0.040
+       8          0.968          122.48           0.038
+       9          0.968          128.86           0.036
+      10          0.973          104.78           0.044
+      11          0.968          116.12           0.040
+      12          0.985          127.40           0.037
+      13          0.963          135.18           0.034
+      14          0.970          127.63           0.036
+      15          0.965          112.90           0.041
+      16          0.954          107.78           0.042
+      17          0.967          129.40           0.036
+      18          0.962          138.35           0.033
+      19          0.958          112.63           0.040
+      20          0.955          120.25           0.038
+      21          0.966          125.66           0.037
+      22          0.967          132.55           0.035
+      23          0.960          123.49           0.037
+      24          0.957          119.83           0.038
+      25          0.936          112.37           0.040
+      26          0.932          125.48           0.035
+
+
+BLOCK 5 STATISTICS:
+
+
+for 1386 jobs
+  avg interarrivals .. =  16.70
+  avg wait ........... =  80.03
+  avg # in node ...... =   4.79
+  avg delay .......... =  20.86
+  avg # in queue ..... =   1.25
+
+the server statistics are:
+
+    server     utilization     avg service        share
+       1          0.847           62.92           0.225
+       2          0.770           57.54           0.224
+       3          0.732           61.42           0.199
+       4          0.644           58.74           0.183
+       5          0.547           54.13           0.169
+
+
+| ------------------------------------------------ |
+
