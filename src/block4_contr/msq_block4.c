@@ -29,7 +29,6 @@
 
 #define M4 120
 
-
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
@@ -92,7 +91,7 @@ int FindOneBlockfour(event_list_four event)
 
 void *block4() {
 
-    int received = 0;
+    FILE *fp;
 
     struct {
         double current;      /* current time                       */
@@ -117,6 +116,10 @@ void *block4() {
     double lastArrival;
     double dt = 0;
 
+    double totalService = 0.0;
+    double avgService = 0.0;
+    double totalUtilization = 0.0;
+
     /* Initialize arrival event */
     t.current = START;
     event[0].t = 0;
@@ -139,8 +142,7 @@ void *block4() {
     oper.sem_flg = 0;
     semop(mainSem, &oper, 1);
 
-
-    /* siccome il blocco 4 deve attendere sia il 2 che il tre allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 6 */
+    /* siccome il blocco 4 deve attendere sia il 2 che il 3 allora è necessario aggiungere questo valore e fargli aspettare finche non diventi 11 */
     while ((stopFlag != 11) || (number > 0) || (arrivalsBlockFour != NULL)) {
 
         /* Wait for the start from the orchestrator */
@@ -259,6 +261,11 @@ void *block4() {
     printf("  avg wait ........... = %6.2f\n", area / index);
     printf("  avg # in node ...... = %6.2f\n", area / t.current);
 
+    /* Write statistics on file */
+    fp = fopen(FILENAME_WAIT_BLOCK4, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
+
     for (s = 1; s <= SERVERS_FOUR; s++)     /* adjust area to calculate */
         area -= sum[s].service;              /* averages for the queue   */
 
@@ -266,13 +273,25 @@ void *block4() {
     printf("  avg # in queue ..... = %6.2f\n", area / t.current);
     printf("\nthe server statistics are:\n\n");
     printf("    server     utilization     avg service        share\n");
-    for (s = 1; s <= SERVERS_FOUR; s++)
+    for (s = 1; s <= SERVERS_FOUR; s++) {
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double) sum[s].served / index);
+        totalService += sum[s].service / sum[s].served;
+        totalUtilization += sum[s].service / t.current;
+    }
+
+    avgService = totalService / SERVERS_FOUR;
+
+    printf("\n   avg service ........ = %6.6f\n", avgService / SERVERS_FOUR);
+    printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_FOUR);
+
+    /* Write statistics on file */
+    fp = fopen(FILENAME_DELAY_BLOCK4, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
 
     printf("\n");
-
 
     pthread_exit((void *)0);
 }

@@ -29,7 +29,6 @@
 
 #define M3 15
 
-
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
@@ -92,7 +91,7 @@ int FindOneBlockThree(event_list_three event)
 
 void *block3() {
 
-    int received = 0;
+    FILE *fp;
 
     struct {
         double current;      /* current time                       */
@@ -117,6 +116,10 @@ void *block3() {
     double dt = 0;
     double service;
 
+    double totalService = 0.0;
+    double avgService = 0.0;
+    double totalUtilization = 0.0;
+
     /* Initialize arrival event */
     t.current = START;
     event[0].t = 0;
@@ -138,8 +141,6 @@ void *block3() {
     oper.sem_op = 1;
     oper.sem_flg = 0;
     semop(mainSem, &oper, 1);
-
-
 
     while ((stopFlag != 1) || (number > 0) || (arrivalsBlockThree != NULL)) {
 
@@ -259,6 +260,11 @@ void *block3() {
     printf("  avg wait ........... = %6.2f\n", area / index);
     printf("  avg # in node ...... = %6.2f\n", area / t.current);
 
+    /* Write statistics on file */
+    fp = fopen(FILENAME_WAIT_BLOCK3, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
+
     for (s = 1; s <= SERVERS_THREE; s++)     /* adjust area to calculate */
         area -= sum[s].service;              /* averages for the queue   */
 
@@ -266,13 +272,25 @@ void *block3() {
     printf("  avg # in queue ..... = %6.2f\n", area / t.current);
     printf("\nthe server statistics are:\n\n");
     printf("    server     utilization     avg service        share\n");
-    for (s = 1; s <= SERVERS_THREE; s++)
+    for (s = 1; s <= SERVERS_THREE; s++) {
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double) sum[s].served / index);
+        totalService += sum[s].service / sum[s].served;
+        totalUtilization += sum[s].service / t.current;
+    }
+
+    avgService = totalService / SERVERS_THREE;
+
+    printf("\n   avg service ........ = %6.6f\n", avgService / SERVERS_THREE);
+    printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_THREE);
+
+    /* Write statistics on file */
+    fp = fopen(FILENAME_DELAY_BLOCK3, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
 
     printf("\n");
-
 
     pthread_exit((void *)0);
 }

@@ -26,8 +26,6 @@ queue* create_queue_node(double at, double st, double dt, int c){
     return node;
 }
 
-
-
 /* crea un nodo per la lista delle partenze */
 dep_list* create_list_node(double dt, double st, int c){
     dep_list* node = (dep_list*)malloc(sizeof(dep_list));

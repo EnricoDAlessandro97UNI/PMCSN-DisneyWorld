@@ -25,10 +25,12 @@
 #define THRESHOLD_PROBABILITY 0.6        /* forward probability */
 
 /* ricordiamoci che questi sono 1/lambda */
-
 #define INT1 2.4    /* interrarivi (1/lambda1) */
 #define INT2 4.32   /* interrarivi (1/lambda2) */
 #define M1 120
+
+FILE *fp;
+double arrival;
 
 typedef struct
 {             /* the next-event list    */
@@ -37,18 +39,14 @@ typedef struct
 } event_list_one[SERVERS_ONE + 1];
 
 
-
 double GetArrivalBlockOne(void)
 /* ---------------------------------------------
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
  */
 {
-    static double arrival = START;
-
     SelectStream(0);
     arrival += Exponential(INT1);
-
     return (arrival);
 }
 
@@ -108,7 +106,8 @@ int FindOneBlockOne(event_list_one event)
 }
 
 void *block1()
-{
+{   
+    arrival = START;
 
     stopFlag = 0;
     stopFlag2 = 0;
@@ -140,8 +139,9 @@ void *block1()
     int forwarded = 0;
 
     double lastArrival = 0.0;
-
-    PlantSeeds(987654321);
+    double totalService = 0.0;
+    double avgService = 0.0;
+    double totalUtilization = 0.0;
 
     /* Initialize arrival event */
     t.current = START;
@@ -189,13 +189,6 @@ void *block1()
 
             //printf("\nBLOCK1: Processing an arrival...\n");
             //printf("\tCurrent arrival time: %6.2f\n", event[0].t);
-
-            /* Handle feedback_counter
-            if (feedback_counter != 0) {
-                number = number + feedback_counter;
-                feedback_counter = 0;
-            }
-            */
 
             number++;
 
@@ -263,18 +256,6 @@ void *block1()
             }
 
             /* prepara il ritorno da dare all'orchestrator */
-            /*
-            glblDep = (block_queue *)malloc(sizeof(block_queue));
-            if (glblDep == NULL)
-            {
-                perror("Malloc error:");
-                return NULL;
-            }
-            
-            glblDep->block = 1;
-            glblDep->time = dt;
-            */
-
            departureInfo.blockNum = 1;
            departureInfo.time = dt;
         }
@@ -312,6 +293,11 @@ void *block1()
     printf("  avg wait ........... = %6.6f\n", area / index);
     printf("  avg # in node ...... = %6.6f\n", area / t.current);
 
+    /* Write statistics on file */
+    fp = fopen(FILENAME_WAIT_BLOCK1, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
+
     for (s = 1; s <= SERVERS_ONE; s++) /* adjust area to calculate */
         area -= sum[s].service;        /* averages for the queue   */
 
@@ -319,12 +305,25 @@ void *block1()
     printf("  avg # in queue ..... = %6.6f\n", area / t.current);
     printf("\nthe server statistics are:\n\n");
     printf("    server     utilization     avg service        share\n");
-    for (s = 1; s <= SERVERS_ONE; s++)
+    for (s = 1; s <= SERVERS_ONE; s++) {
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double)sum[s].served / index);
+        totalService += sum[s].service / sum[s].served;
+        totalUtilization += sum[s].service / t.current;
+    }
+    
+    avgService = totalService / SERVERS_ONE;
+
+    printf("\n   avg service ........ = %6.6f\n", avgService / SERVERS_ONE);
+    printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_ONE);
+
+    /* Write statistics on file */
+    fp = fopen(FILENAME_DELAY_BLOCK1, "a");
+    fprintf(fp,"%6.6f\n", area / index);
+    fclose(fp);
 
     printf("\n");
-
+    
     pthread_exit((void *)0);
 }

@@ -18,11 +18,8 @@
 #include <sys/sem.h>
 #include "../orchestrator_helper.h"
 
-
 #define START         0.0              /* initial time                   */
-
 #define M2 20
-
 
 double GetArrivalBlock2(int blockNum)
 /* ---------------------------------------------
@@ -50,9 +47,10 @@ double GetServiceBlock2()
 }
 
 
-
-
 void *block2() {
+
+    FILE *fp;
+
     struct {
         double arrival;                 /* next arrival time                   */
         double completion;              /* next completion time                */
@@ -125,7 +123,6 @@ void *block2() {
             lastArrival = t.arrival;
             DeleteFirstArrival(2);
 
-
             if (number == 1) {
                 t.completion = t.current + GetServiceBlock2();
                 //printf("service %6.2f completion %6.2f\n", t.completion - t.current, t.completion);
@@ -190,6 +187,15 @@ void *block2() {
     printf("   average # in the node ... = %6.2f\n", area.node / t.current);
     printf("   average # in the queue .. = %6.2f\n", area.queue / t.current);
     printf("   utilization ............. = %6.2f\n", area.service / t.current);
+
+    /* Write statistics on files */
+    fp = fopen(FILENAME_WAIT_BLOCK2, "a");
+    fprintf(fp,"%6.6f\n", area.node / index);
+    fclose(fp);
+
+    fp = fopen(FILENAME_DELAY_BLOCK2, "a");
+    fprintf(fp,"%6.6f\n", area.queue / index);
+    fclose(fp);
 
     return (0);
 }

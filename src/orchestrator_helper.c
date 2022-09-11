@@ -9,59 +9,6 @@
 #include "rngs.h"
 #include "orchestrator_helper.h"
 
-
-void update_availability(int block) {
-    /* cerco il blocco */
-    glbl_info *t = glblHead;
-    while(t->blockNum != block){
-        t = t->next;
-    }
-    printf("\nBlock %d next_e_t %6.2f\n", t->blockNum, t->ne->time);
-       /* bisogna evitare di farlo se in coda c'è un solo arrivo */
-    t->available_event_flag = 1;
-}
-
-
-int get_available_e_flag(int block){
-    glbl_info *t = glblHead;
-    while(t != NULL) {
-        if(t->blockNum == block){
-            return t->available_event_flag;
-        }
-        t = t->next;
-    }
-
-    return -1;
-}
-
-
-int set_available_e_flag(int block){
-    glbl_info *t = glblHead;
-    while(t != NULL){
-        if(t->blockNum == block){
-            t->available_event_flag = 0;
-            return t->available_event_flag;
-        }
-        t = t->next;
-    }
-    return -1;
-
-}
-
-/*
-void update_next_event(int block, double time, int k){
-    glbl_info *t = glblHead;
-    while (t != NULL) {
-        if (t -> blockNum == block) {
-            t -> ne -> time = time;     // istante prossimo evento 
-            t -> ne -> eventType = k;      // tipo del prossimo evento (0 arrivo, 1 partenza) 
-            break;
-        }
-        t = t -> next;
-    }
-}
-*/
-
 void update_next_event(int blockNum, double time, int eventType) {
     globalInfo[blockNum-1].time = time;             /* Instant of the next event */
     globalInfo[blockNum-1].eventType = eventType;   /* Next event type: 0 arrival, 1 departure */
@@ -75,21 +22,7 @@ void init_queues() {
     arrivalsBlockFive = NULL;
 }
 
-/* quando c'è un nuovo arrivo in un blocco bisogna aggiornare il next event */
-/*
-void update_next_event_after_arrival(int block, double time) {
-    glbl_info *gh = glblHead;
-    int index = 1;
-    while (index != block){
-        gh = gh -> next;
-        index++;
-    }
-    if(gh -> ne -> time > time) { // questo nuovo evento avviene prima di quello schedulato in precedenza dal blocco, quindi cambio il next event
-        gh -> ne -> time = time;
-        gh -> ne -> eventType = 0; // the event is an arrival
-    }
-}
-*/
+
 void update_next_event_after_arrival(int blockNum, double time) {
     if (globalInfo[blockNum-1].time > time) { // change the next event for the block blockNum
         globalInfo[blockNum-1].time = time;
@@ -186,28 +119,6 @@ int add_event_to_queue(double time, int block) {
     return 0;
 }
 
-
-/* Return the index of the block with the most imminent event */
-/*
-int get_next_event() {
-    glbl_info *t = glblHead;
-    int block = -1;
-    double min = glblHead -> ne -> time;
-    block = 1;
-    while (t != NULL){
-        printf("Block %d next event time: %6.2f\n", t -> blockNum, t -> ne -> time);
-        if(t -> ne -> time < min){
-            block = t -> blockNum;
-            min = t -> ne -> time;
-        }
-        t = t -> next;
-    }
-
-    printf("\nMin time: %6.2f\n", min);
-    return block;   // -1 =: ERROR 
-}
-*/
-
 /* Return the index of the block with the most imminent event */
 int get_next_event() {
     int blockNumber = 1;
@@ -224,67 +135,34 @@ int get_next_event() {
     //printf("\nMin event time block %d: %6.2f\n", blockNumber, min);
     if(min == INFINITY){
         return -2;
-    }else {
+    } 
+    else {
         return blockNumber;
     }
 }
 
-void create_list() {
-    /* inizializza la testa della coda */
-    glblHead = (glbl_info*)malloc(sizeof(glbl_info));
-    if(glblHead == NULL){
-        perror("Malloc error:");
-        exit(-1);
-    }
-
-    glblHead->next = NULL;
-    glblHead->ne = (next_event *)malloc(sizeof(next_event));
-    if(glblHead->ne == NULL){
-        perror("Malloc error:");
-        exit(-1);
-    }
-
-    glbl_info *tmp = glblHead;
-
-    /* crea gli altri 4 blocchi della coda */
-    for(int i = 0; i < 4; i++){
-        tmp->next = (glbl_info*)malloc(sizeof(glbl_info));
-        if(tmp->next == NULL){
-            perror("Malloc error:");
-            exit(-1);
-        }
-        tmp->next->ne = (next_event *)malloc(sizeof(next_event));
-        if(tmp->next->ne == NULL){
-            perror("Malloc error:");
-            exit(-1);
-        }
-
-        tmp = tmp->next;
-    }
-    
-    tmp->next = NULL;
-}
-
-
-void init_list() {
-    int c = 1;
-    glbl_info *tmp = glblHead;
-    tmp->ne->time = 0;    /* il primo blocco deve avere tempo minore di tutti */
-    tmp->ne->eventType = 0;    /* all'inizio tutti i blocchi attendono un arrivo */
-    tmp->blockNum = c;
-    tmp->available_event_flag = 0;
-
-    tmp = tmp->next;
-    c++;
-    while(tmp != NULL){
-        tmp->ne->time = INFINITY;
-        tmp->ne->eventType = 0;    /* all'inizio tutti i blocchi attendono un arrivo */
-        tmp->blockNum = c;
-        tmp->available_event_flag = 0;
-
-        tmp = tmp->next;
-        c++;
-    }
+void create_statistics_files() {
+    FILE *fp;
+    fp = fopen(FILENAME_DELAY_BLOCK1, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_WAIT_BLOCK1, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_DELAY_BLOCK2, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_WAIT_BLOCK2, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_DELAY_BLOCK3, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_WAIT_BLOCK3, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_DELAY_BLOCK4, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_WAIT_BLOCK4, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_DELAY_BLOCK5, "w");
+    fclose(fp);
+    fp = fopen(FILENAME_WAIT_BLOCK5, "w");
+    fclose(fp);
 }
 
 /* Initializes the initial state of the global_info structure  */

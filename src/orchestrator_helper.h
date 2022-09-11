@@ -4,11 +4,23 @@
 #include <stdio.h>
 #include "rngs.h"
 
+#define SEED 123456789
+
+#define FILENAME_WAIT_BLOCK1 "block1_tickets/wait_block1.dat"
+#define FILENAME_DELAY_BLOCK1 "block1_tickets/delay_block1.dat"
+#define FILENAME_WAIT_BLOCK2 "block2_dis/wait_block2.dat"
+#define FILENAME_DELAY_BLOCK2 "block2_dis/delay_block2.dat"
+#define FILENAME_WAIT_BLOCK3 "block3_norm/wait_block3.dat"
+#define FILENAME_DELAY_BLOCK3 "block3_norm/delay_block3.dat"
+#define FILENAME_WAIT_BLOCK4 "block4_contr/wait_block4.dat"
+#define FILENAME_DELAY_BLOCK4 "block4_contr/delay_block4.dat"
+#define FILENAME_WAIT_BLOCK5 "block5_storage/wait_block5.dat"
+#define FILENAME_DELAY_BLOCK5 "block5_storage/delay_block5.dat"
+
 typedef struct next_event { 
     double time;    /* istante dell'evento */
     int eventType;     /* 0: arrivo 1: partenza */
 } next_event;
-
 
 typedef struct glbl_info {
     int blockNum;                /* Numero di blocco */
@@ -38,16 +50,6 @@ typedef struct block_queue {
     struct block_queue *next;
 } block_queue;
 
-
-extern int whoIsFree[5];
-
-
-/* ogni blocco che ha una partenza alloca spazio e ci mette dentro i valori prescelti.
- * L' orchestrator, dopo aver preso i dati fa la free. */
-extern block_queue *glblDep;
-
-extern glbl_info *glblHead;
-
 /* -------------- GLOBAL VARIABLES -------------- */
 extern global_info globalInfo[5];
 
@@ -69,23 +71,18 @@ extern int stopFlag2;
 extern int block4Lost;
 extern int block4ToExit;
 
-
+extern int whoIsFree[5];
 /* ---------------------------------------------- */
-
-extern int feedback_counter;
 
 double Exponential(double m);
 double Uniform(double a, double b);
-
-void create_list();
-void init_list();
+void create_statistics_files();
 void init_global_info_structure();
 int get_next_event();
 int get_next_event_type(int);
 double get_next_event_time(int);
 int add_event_to_queue(double time, int block);
 void update_next_event(int, double, int);
-void update_availability(int block);
 glbl_info* GetArrivalFromList(int block);
 double GetServiceFromList(int block);
 double GetService(void);
@@ -93,9 +90,7 @@ int GetSkateType();
 void init_queues();
 block_queue* GetArrivalFromQueue(int block);
 int DeleteFirstArrival(int block);
-int get_available_e_flag(int block);
 void update_next_event_after_arrival(int block, double time);
-int set_available_e_flag(int block);
 float get_probability();
 double Min(double a, double c);
 float get_forward_probability();
