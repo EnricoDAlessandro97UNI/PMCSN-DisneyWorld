@@ -30,6 +30,7 @@
 #define M1 120
 
 FILE *fp;
+double arrival;
 
 typedef struct
 {             /* the next-event list    */
@@ -43,8 +44,7 @@ double GetArrivalBlockOne(void)
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
  */
-{   
-    static double arrival = START;
+{
     SelectStream(0);
     arrival += Exponential(INT1);
     return (arrival);
@@ -107,8 +107,12 @@ int FindOneBlockOne(event_list_one event)
 
 void *block1()
 {   
+    arrival = START;
+
     stopFlag = 0;
     stopFlag2 = 0;
+
+    int pj1 = 0;
 
     struct
     {
@@ -193,6 +197,9 @@ void *block1()
             event[0].t = GetArrivalBlockOne(); /* genera l'istante del prossimo arrivo */
             //printf("\tNext arrival: %6.2f\n", event[0].t);
 
+            /* Controllo se l'arrivo è fascia 2, se è fascia imposta un flag
+               per far si che dopo cerchi un server tra il nuovo numero */
+
             if (event[0].t > STOP) 
             {                   /* se si è arrivati alla fine non si avranno più arrivi */
                 event[0].x = 0; /* verranno comunque completati i job rimanenti nel centro */
@@ -243,6 +250,13 @@ void *block1()
              con un nuovo tempo di servizio al
              server appena liberato */
 
+
+                /* Decrementare contatore di server da togliere 
+                   Ogni volta controllo il contatore a zero
+                   Se a zero, allora nulla
+                   Se diverso, allora si decrementa e si salta all'else */
+
+
                 double service = GetServiceBlockOne();
                 sum[s].service += service;
                 sum[s].served++;
@@ -257,6 +271,15 @@ void *block1()
             /* prepara il ritorno da dare all'orchestrator */
             departureInfo.blockNum = 1;
             departureInfo.time = dt;
+
+            pj1++;
+            if (pj1 == 512) { /* b = 1024 */
+                /* Write statistics on file */
+                fp = fopen(FILENAME_WAIT_BLOCK1, "a");
+                fprintf(fp,"%6.6f\n", area / index);
+                fclose(fp);
+                pj1 =0 ;
+            }
         }
 
         /* l' orchestrator deve sapere quale sarà il prossimo evento di questo blocco */
@@ -292,9 +315,11 @@ void *block1()
     printf("  avg # in node ...... = %6.6f\n", area / t.current);
 
     /* Write statistics on file */
+    /*
     fp = fopen(FILENAME_WAIT_BLOCK1, "a");
     fprintf(fp,"%6.6f\n", area / index);
     fclose(fp);
+    */
 
     for (s = 1; s <= SERVERS_ONE; s++) /* adjust area to calculate */
         area -= sum[s].service;        /* averages for the queue   */
@@ -317,9 +342,11 @@ void *block1()
     printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_ONE);
 
     /* Write statistics on file */
+    /*
     fp = fopen(FILENAME_DELAY_BLOCK1, "a");
     fprintf(fp,"%6.6f\n", area / index);
     fclose(fp);
+    */
 
     printf("\n");
     

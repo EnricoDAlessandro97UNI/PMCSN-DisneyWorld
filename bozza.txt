@@ -2,7 +2,10 @@ OBIETTIVO
 	- minimizzare i costi
 	- rispettare i QoS
 		- limitare i tempi di risposta 25 m
-		- limitare il tempo di risposta per il controllo da parte della sicurezza a 10 minuti (metal detector) (dato che i controlli sono obbligatori per tutti)
+		- limitare il tempo di risposta per il controllo da parte della sicurezza a 10
+		  minuti (metal detector) (dato che i controlli sono obbligatori per tutti)
+		- limitare i tempi di risposta ai controlli per i disabili a 4 minuti (modello
+		  migliorativo) 
 		
 
 UTENTI

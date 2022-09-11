@@ -72,6 +72,12 @@ extern int block4ToExit;
 
 extern int whoIsFree[5];
 
+extern double glblWaitBlockOne;
+extern double glblWaitBlockTwo;
+extern double glblWaitBlockThree;
+extern double glblWaitBlockFour;
+extern double glblWaitBlockFive;
+
 /* ---------------------------------------------- */
 
 double Exponential(double m);

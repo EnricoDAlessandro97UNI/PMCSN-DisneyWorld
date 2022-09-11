@@ -27,6 +27,11 @@ double GetArrivalBlock2(int blockNum)
  * ---------------------------------------------
  */
 {
+    /*static double arrival = START;
+
+    SelectStream(2);
+    arrival += Exponential(2.0);
+    return (arrival);*/
     return globalInfo[blockNum - 1].time;
 }
 

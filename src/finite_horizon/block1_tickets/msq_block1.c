@@ -16,12 +16,15 @@
 #include <math.h>
 #include <pthread.h>
 
-#include "../orchestrator_helper.h"
+#include "../finite_helper.h"
 #include "block1_helper.h"
 
 #define START 0.0        /* initial (open the door)        */
-#define SERVERS_ONE 20    /* number of servers              */
-#define STOP 36000.0     /* terminal (close the door) time  (Fascia1: 36000, Fascia2: 21600)*/
+#define MAX_SERVERS_ONE 200    /* number of servers              */
+#define SERVERS_ONE_F1 20
+#define SERVERS_ONE_F2 10
+#define STOP 57600.0     /* terminal (close the door) time  (Fascia1: 36000, Fascia2: 21600)*/
+#define CHANGE 36000.0
 #define THRESHOLD_PROBABILITY 0.6        /* forward probability */
 
 /* ricordiamoci che questi sono 1/lambda */
@@ -30,26 +33,37 @@
 #define M1 120
 
 FILE *fp;
+int arrival;
+int numberOfServers;
 
 typedef struct
 {             /* the next-event list    */
     double t; /*   next event time      */
     int x;    /*   event status, 0 or 1 */
-} event_list_one[SERVERS_ONE + 1];
+} event_list_one[MAX_SERVERS_ONE + 1];
 
 
-double GetArrivalBlockOne(void)
+double GetArrivalBlockOneF1(void)
 /* ---------------------------------------------
  * generate the next arrival time, with rate 1/2
  * ---------------------------------------------
  */
-{   
-    static double arrival = START;
+{
     SelectStream(0);
     arrival += Exponential(INT1);
     return (arrival);
 }
 
+double GetArrivalBlockOneF2(void)
+/* ---------------------------------------------
+ * generate the next arrival time, with rate 1/2
+ * ---------------------------------------------
+ */
+{
+    SelectStream(0);
+    arrival += Exponential(INT2);
+    return (arrival);
+}
 
 double GetServiceBlockOne(void)
 /* ---------------------------------------------
@@ -74,7 +88,7 @@ int NextEventBlockOne(event_list_one event)
         i++;                /* element in the event list            */
     e = i;
 
-    while (i < SERVERS_ONE)
+    while (i < MAX_SERVERS_ONE)
     {        /* now, check the others to find which  */
         i++; /* event type is most imminent          */
         if ((event[i].x == 1) && (event[i].t < event[e].t))
@@ -96,7 +110,7 @@ int FindOneBlockOne(event_list_one event)
     while (event[i].x == 1) /* find the index of the first available */
         i++;                /* (idle) server                         */
     s = i;
-    while (i < SERVERS_ONE)
+    while (i < numberOfServers)
     {        /* now, check the others to find which   */
         i++; /* has been idle longest                 */
         if ((event[i].x == 0) && (event[i].t < event[s].t))
@@ -107,9 +121,6 @@ int FindOneBlockOne(event_list_one event)
 
 void *block1()
 {   
-    stopFlag = 0;
-    stopFlag2 = 0;
-
     struct
     {
         double current; /* current time                       */
@@ -130,7 +141,7 @@ void *block1()
     {                   /* accumulated sums of  */
         double service; /*   service times      */
         long served;    /*   number served      */
-    } sum[SERVERS_ONE + 1];
+    } sum[MAX_SERVERS_ONE + 1];
 
     double dt = 0.0; /* departure time */
     float prob = 0;
@@ -138,16 +149,23 @@ void *block1()
 
     double lastArrival = 0.0;
     double totalService = 0.0;
-    double avgService = 0.0;
     double totalUtilization = 0.0;
+
+    stopFlag = 0;
+    stopFlag2 = 0;
+
+    arrival = START;
+
+    int changeConfiguration = 0;
+    int numberOfServers = SERVERS_ONE_F1;
 
     /* Initialize arrival event */
     t.current = START;
-    event[0].t = GetArrivalBlockOne();
+    event[0].t = GetArrivalBlockOneF1();
     event[0].x = 1;
 
     /* Initialize server status */
-    for (s = 1; s <= SERVERS_ONE; s++)
+    for (s = 1; s <= MAX_SERVERS_ONE; s++)
     {
         event[s].t = START; /* this value is arbitrary because */
         event[s].x = 0;     /* all servers are initially idle  */
@@ -180,18 +198,26 @@ void *block1()
         tmpArea = (t.next - t.current) * number; /* update integral  */
         t.current = t.next;                    /* advance the clock*/
 
-        //printf("\nCurrent time: %6.2f\n", t.current);
+        glblWaitBlockOne = area / index;
 
         if (e == 0)
         { /* Process an arrival */
 
-            //printf("\nBLOCK1: Processing an arrival...\n");
-            //printf("\tCurrent arrival time: %6.2f\n", event[0].t);
-
             number++;
-
-            event[0].t = GetArrivalBlockOne(); /* genera l'istante del prossimo arrivo */
-            //printf("\tNext arrival: %6.2f\n", event[0].t);
+            
+            if (changeConfiguration == 0) {
+                event[0].t = GetArrivalBlockOneF1(); /* genera l'istante del prossimo arrivo */
+            }
+            else {
+                event[0].t = GetArrivalBlockOneF2(); /* genera l'istante del prossimo arrivo */
+            }
+            
+            /* Controllo se l'arrivo è fascia 2, se è fascia imposta un flag
+               per far si che dopo cerchi un server tra il nuovo numero */
+            if (event[0].t > CHANGE) {
+                changeConfiguration = 1;
+                numberOfServers = SERVERS_ONE_F2;
+            }
 
             if (event[0].t > STOP) 
             {                   /* se si è arrivati alla fine non si avranno più arrivi */
@@ -208,7 +234,7 @@ void *block1()
                 departureInfo.time = t.current;
                 //printf("\tForwarded departure: %6.2f\n", t.current);
 
-            }else if (number <= SERVERS_ONE){
+            }else if (number <= numberOfServers){
                 /* se nel sistema ci sono al più tanti job quanti i server allora calcola un tempo di servizio */
                 lastArrival = event[0].t;
                 double service = GetServiceBlockOne();
@@ -238,16 +264,23 @@ void *block1()
 
             //printf("\tDeparture: %6.2f\n", event[s].t);
             dt = event[s].t;
-            if (number >= SERVERS_ONE)
+            if (number >= numberOfServers)
             { /* se ci sono job in coda allora assegniamo un nuovo job
              con un nuovo tempo di servizio al
              server appena liberato */
 
-                double service = GetServiceBlockOne();
-                sum[s].service += service;
-                sum[s].served++;
-                event[s].t = t.current + service; /* calcola l'istante del
-                                                     prossimo evento su quel server (partenza) */
+
+                /* Decrementare contatore di server da togliere 
+                   Ogni volta controllo il contatore a zero
+                   Se a zero, allora nulla
+                   Se diverso, allora si decrementa e si salta all'else */
+                if (s <= numberOfServers) { /* Possiamo assegnare il server */
+                    double service = GetServiceBlockOne();
+                    sum[s].service += service;
+                    sum[s].served++;
+                    event[s].t = t.current + service; /* calcola l'istante del
+                                                        prossimo evento su quel server (partenza) */
+                }
             }
             else
             {
@@ -292,18 +325,20 @@ void *block1()
     printf("  avg # in node ...... = %6.6f\n", area / t.current);
 
     /* Write statistics on file */
+    /*
     fp = fopen(FILENAME_WAIT_BLOCK1, "a");
     fprintf(fp,"%6.6f\n", area / index);
     fclose(fp);
+    */
 
-    for (s = 1; s <= SERVERS_ONE; s++) /* adjust area to calculate */
+    for (s = 1; s <= SERVERS_ONE_F1; s++) /* adjust area to calculate */
         area -= sum[s].service;        /* averages for the queue   */
 
     printf("  avg delay .......... = %6.6f\n", area / index);
     printf("  avg # in queue ..... = %6.6f\n", area / t.current);
     printf("\nthe server statistics are:\n\n");
     printf("    server     utilization     avg service        share\n");
-    for (s = 1; s <= SERVERS_ONE; s++) {
+    for (s = 1; s <= SERVERS_ONE_F1; s++) {
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double)sum[s].served / index);
@@ -311,15 +346,17 @@ void *block1()
         totalUtilization += sum[s].service / t.current;
     }
     
-    avgService = totalService / SERVERS_ONE;
+    //avgService = totalService / SERVERS_ONE;
 
-    printf("\n   avg service ........ = %6.6f\n", avgService / SERVERS_ONE);
-    printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_ONE);
+    //printf("\n   avg service ........ = %6.6f\n", avgService / SERVERS_ONE);
+    //printf("   avg utilization .... = %6.6f\n", totalUtilization / SERVERS_ONE);
 
     /* Write statistics on file */
+    /*
     fp = fopen(FILENAME_DELAY_BLOCK1, "a");
     fprintf(fp,"%6.6f\n", area / index);
     fclose(fp);
+    */
 
     printf("\n");
     

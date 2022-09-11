@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <sys/sem.h>
-#include "../orchestrator_helper.h"
+#include "../finite_helper.h"
 
 #define START         0.0              /* initial time                   */
 #define M2 10
@@ -68,7 +68,6 @@ void *block2() {
     t.arrival = INFINITY;    /* schedule the first arrival            */
     t.completion = INFINITY;        /* the first event can't be a completion */
 
-
     int nextEvent;        /* Next event type */
     double dt = 0;
 
@@ -78,7 +77,6 @@ void *block2() {
     oper.sem_op = 1;
     oper.sem_flg = 0;
     semop(mainSem, &oper, 1);
-
 
     while ((stopFlag != 1) || (arrivalsBlockTwo != NULL) || (number > 0)) {
 
@@ -101,7 +99,6 @@ void *block2() {
             //printf("\nBLOCK 2 ARRIVAL %f\n", t.arrival);
         }
 
-
         t.next = Min(t.arrival, t.completion);  /* next event time   */
         if (number > 0 && t.next != INFINITY) {                               /* update integrals  */
             area.node += (t.next - t.current) * number;
@@ -109,6 +106,8 @@ void *block2() {
             area.service += (t.next - t.current);
         }
         t.current = t.next;                    /* advance the clock */
+        
+        glblWaitBlockTwo = area.node / index;
 
         //if (t.current == t.arrival) {
         if(nextEvent == 0){                     /* process an arrival */
@@ -153,12 +152,10 @@ void *block2() {
 
         //printf("--------------------------\n\n");
 
-
         oper.sem_num = 0;
         oper.sem_op = 1;
         oper.sem_flg = 0;
         semop(mainSem, &oper, 1);
-
     }
 
     whoIsFree[1] = 1;
